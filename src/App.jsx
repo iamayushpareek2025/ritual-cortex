@@ -1936,6 +1936,21 @@ export default function App() {
               <circle cx="16" cy="16" r="4" fill="currentColor" />
             </svg>
             <span>Ritual Brain © 2026</span>
+            <span style={{ margin: '0 8px', opacity: 0.3 }}>|</span>
+            <span style={{ 
+              color: 'var(--text-secondary)',
+              fontSize: '0.8rem',
+              fontWeight: 500,
+              textShadow: '0 0 8px rgba(139, 92, 246, 0.4)',
+              background: 'linear-gradient(90deg, #8b5cf6, #3b82f6)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}>
+              Made with <span style={{ color: '#ef4444', WebkitTextFillColor: 'initial', fontSize: '0.9rem' }}>❤️</span> by Ayush
+            </span>
           </div>
 
           <ul className="footer-links">
