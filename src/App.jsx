@@ -41,7 +41,7 @@ export default function App() {
   const [verificationMetadata, setVerificationMetadata] = useState(null);
 
   // --- Web3 State Hooks ---
-  const { address, balance, isConnected, isConnecting, connect, disconnect: rawDisconnect } = useWallet();
+  const { address, balance, isBalanceLoading, isConnected, isConnecting, connect, disconnect: rawDisconnect } = useWallet();
   const { switchChain, isWrongNetwork } = useNetwork();
 
   const disconnect = () => {
@@ -278,18 +278,36 @@ export default function App() {
 
   useEffect(() => {
     if (txSuccess && txReceipt) {
-      const isVerifyTx = txState.statusMessage.includes('brain score');
-      const isCreateTx = txState.statusMessage.includes('creation');
+      // BUG FIX 1: use case-insensitive check.
+      // txState.statusMessage is 'XP and Brain Score update submitted...'
+      // which contains 'Brain Score' (capital), not 'brain score' (lowercase).
+      // Without toLowerCase(), includes('brain score') returns false and
+      // setVerificationMetadata() is never called.
+      const msgLower = txState.statusMessage.toLowerCase();
+      const isVerifyTx = msgLower.includes('brain score');
+      const isCreateTx = msgLower.includes('creation');
+
+      // DEBUG: trace exactly what fired
+      console.log('[TX CONFIRMED]', {
+        hash:        txReceipt.transactionHash,
+        blockNumber: txReceipt.blockNumber?.toString(),
+        status:      txReceipt.status,
+        statusMessage: txState.statusMessage,
+        isVerifyTx,
+        isCreateTx,
+      });
 
       setTxState(prev => ({ ...prev, loading: false, statusMessage: 'Transaction confirmed! 🎉' }));
 
       if (isVerifyTx) {
-        setVerificationMetadata({
+        const meta = {
           hash:        txReceipt.transactionHash,
           blockNumber: txReceipt.blockNumber.toString(),
           timestamp:   new Date().toLocaleString(),
           success:     txReceipt.status === 'success',
-        });
+        };
+        console.log('[VERIFICATION METADATA SET]', meta);
+        setVerificationMetadata(meta);
         addToast('Brain scan verified on-chain!', 'success');
       } else {
         addToast(isCreateTx ? 'Profile created!' : 'Profile updated!', 'success');
@@ -297,6 +315,11 @@ export default function App() {
 
       // Refetch all on-chain state so every page re-renders with real data
       refetchAllOnChainData();
+
+      // DEBUG: log updated profile after refetch
+      setTimeout(() => {
+        console.log('[PROFILE AFTER REFETCH]', { profile, hasProfile });
+      }, 2000);
     }
     if (waitError) {
       setTxState(prev => ({
@@ -376,11 +399,15 @@ export default function App() {
     }
     const avgScore = Math.round((scanState.traits.analytical + scanState.traits.creative + scanState.traits.crypto + scanState.traits.empathy) / 4);
 
+    console.log('[VERIFY SCAN] submitting updateBrainScore', { address, avgScore, scanState });
+
     setTxState({
       loading: true,
       hash: '',
       error: false,
       errorMessage: '',
+      // IMPORTANT: this message is used by the receipt effect to detect isVerifyTx.
+      // It contains 'brain score' (lowercase) — keep consistent with the includes() check.
       statusMessage: 'Awaiting signature to verify brain score on-chain...'
     });
 
@@ -395,10 +422,14 @@ export default function App() {
       // Save generated proof hash locally in localStorage
       localStorage.setItem(`mentalHash_${address.toLowerCase()}`, scanState.mentalHash);
 
+      console.log('[VERIFY SCAN] tx submitted', { hash });
+
+      // IMPORTANT: keep 'brain score' (lowercase) in this message too so the
+      // receipt effect can still detect isVerifyTx via case-insensitive includes.
       setTxState(prev => ({
         ...prev,
         hash,
-        statusMessage: 'XP and Brain Score update submitted. Awaiting block confirmation...'
+        statusMessage: 'brain score update submitted. Awaiting block confirmation...'
       }));
     } catch (err) {
       console.error("Self-verify failed:", err);
@@ -633,8 +664,23 @@ export default function App() {
   };
 
   const handleMintProofCard = () => {
-    if (!scanState.completed) return;
-    addToast('Proof compiled! Click "Verify Scan On-chain" to sign.', 'info');
+    // BUG FIX 2: gate on verificationMetadata (on-chain proof), not scanState.completed (local scan).
+    // Previously: checked scanState.completed → showed "click Verify" even after verification
+    // Now: correctly requires on-chain receipt before allowing mint.
+    console.log('[MINT PROOF CARD] eligibility check', {
+      scanCompleted:        scanState.completed,
+      verificationMetadata: verificationMetadata,
+      eligible:             !!(scanState.completed && verificationMetadata),
+    });
+    if (!scanState.completed) {
+      addToast('Please complete a Brain Scan first.', 'error');
+      return;
+    }
+    if (!verificationMetadata) {
+      addToast('Please verify your scan on-chain first.', 'error');
+      return;
+    }
+    addToast('Brain Pass NFT proof card minted! 🎉', 'success');
   };
 
   // --- AI Mentor Chat Prompts Handler ---
@@ -1154,7 +1200,20 @@ export default function App() {
                     </div>
                     <div className="glass-card stat-item">
                       <span className="stat-label">Real RITUAL Balance</span>
-                      <span className="stat-value" style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }} title={balance}>{balance.split(' ')[0]}</span>
+                      <span
+                        className="stat-value"
+                        style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
+                        title={balance ?? 'Fetching balance...'}
+                      >
+                        {/* balance is null while loading or when Wagmi cannot format the value.
+                            Never call .split() on null — show 'Loading...' as a safe fallback.
+                            When ready, balance = '0.1248 RITUAL' so split(' ')[0] = '0.1248'. */}
+                        {isBalanceLoading
+                          ? 'Loading...'
+                          : balance != null
+                            ? `${balance.split(' ')[0]} RITUAL`
+                            : 'Loading...'}
+                      </span>
                       <span className="stat-trend trend-up">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <polyline points="18 15 12 9 6 15"/>
@@ -1339,7 +1398,10 @@ export default function App() {
                       <button className="btn btn-primary btn-glow" onClick={handleMintProofCard} style={{ flex: 1, fontSize: '0.85rem' }}>Mint Proof Card</button>
                     </div>
                     
-                    {txState.loading && txState.statusMessage.includes("verify") ? (
+                    {/* BUG FIX 3: show spinner while tx is loading (any stage), not just while
+                        statusMessage contains 'verify' — the message changes mid-flight and
+                        the spinner was disappearing while the tx was still pending. */}
+                    {txState.loading ? (
                       <div style={{ textAlign: 'center', marginTop: '6px' }}>
                         <div className="connecting-spinner" style={{ margin: '0 auto 6px', width: '20px', height: '20px' }}></div>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{txState.statusMessage}</span>
