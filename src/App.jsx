@@ -267,31 +267,7 @@ export default function App() {
   }, [registeredBuilders, isWrongNetwork]);
 
 
-  // Sync profile card form whenever on-chain profile data arrives / changes
-  useEffect(() => {
-    if (!hasProfile || !profile) return;
 
-    setProfileForm(prev => ({
-      ...prev,
-      name: profile.username || prev.name,
-      metadataURI: profile.metadataURI || prev.metadataURI,
-    }));
-
-    // If metadataURI points to a JSON endpoint, hydrate role/bio/skills
-    if (profile.metadataURI && (profile.metadataURI.startsWith('http') || profile.metadataURI.startsWith('https'))) {
-      fetch(profile.metadataURI)
-        .then(res => res.json())
-        .then(json => {
-          setProfileForm(prev => ({
-            ...prev,
-            role:   json.role   || prev.role,
-            bio:    json.bio    || prev.bio,
-            skills: json.skills || prev.skills,
-          }));
-        })
-        .catch(err => console.warn('Failed to fetch profile metadata JSON:', err));
-    }
-  }, [hasProfile, profile]);
 
 
 
@@ -393,6 +369,45 @@ export default function App() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [txSuccess, txReceipt, waitError]);
+
+  const lastLoadedAddress = useRef('');
+  const lastLoadedTxHash = useRef('');
+
+  // Sync profile card form whenever on-chain profile data arrives / changes
+  useEffect(() => {
+    if (!hasProfile || !profile || !address) return;
+
+    const isNewAddress = lastLoadedAddress.current !== address.toLowerCase();
+    const isNewTx = txReceipt && lastLoadedTxHash.current !== txReceipt.transactionHash;
+
+    if (isNewAddress || isNewTx) {
+      lastLoadedAddress.current = address.toLowerCase();
+      if (txReceipt) {
+        lastLoadedTxHash.current = txReceipt.transactionHash;
+      }
+
+      setProfileForm(prev => ({
+        ...prev,
+        name: profile.username || prev.name,
+        metadataURI: profile.metadataURI || prev.metadataURI,
+      }));
+
+      // If metadataURI points to a JSON endpoint, hydrate role/bio/skills
+      if (profile.metadataURI && (profile.metadataURI.startsWith('http') || profile.metadataURI.startsWith('https'))) {
+        fetch(profile.metadataURI)
+          .then(res => res.json())
+          .then(json => {
+            setProfileForm(prev => ({
+              ...prev,
+              role:   json.role   || prev.role,
+              bio:    json.bio    || prev.bio,
+              skills: json.skills || prev.skills,
+            }));
+          })
+          .catch(err => console.warn('Failed to fetch profile metadata JSON:', err));
+      }
+    }
+  }, [hasProfile, profile, address, txReceipt]);
 
   // Call createProfile on BrainRegistry
   const handleCreateProfileSubmit = async () => {
