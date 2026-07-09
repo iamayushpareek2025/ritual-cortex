@@ -50,7 +50,7 @@ export default function App() {
   const [verificationMetadata, setVerificationMetadata] = useState(null);
 
   // --- Web3 State Hooks ---
-  const { address, balance, isBalanceLoading, isConnected, isConnecting, connect, disconnect: rawDisconnect } = useWallet();
+  const { address, balance, isBalanceLoading, isConnected, isConnecting, connect, disconnect: rawDisconnect, refetchBalance } = useWallet();
   const { switchChain, isWrongNetwork } = useNetwork();
 
   const disconnect = () => {
