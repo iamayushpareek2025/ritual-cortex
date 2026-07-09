@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 interface IBrainPassNFT {
     function mintPass(address user) external returns (uint256);
+    function userPassId(address user) external view returns (uint256);
+    function balanceOf(address user) external view returns (uint256);
 }
 
 interface IXPBadge {
@@ -128,10 +130,19 @@ contract BrainRegistryV2 is Ownable2Step, ReentrancyGuard {
             exists: true
         });
 
-        // NEW: append to global builder list so frontend can enumerate all profiles
         registeredBuilders.push(msg.sender);
 
-        uint256 passId = IBrainPassNFT(brainPassNFTAddress).mintPass(msg.sender);
+        // Mint the BrainPass NFT.
+        // If the wallet already owns a pass from a previous registry version (V1),
+        // mintPass() will revert with DuplicateMinting — read the existing passId instead.
+        uint256 passId;
+        if (IBrainPassNFT(brainPassNFTAddress).balanceOf(msg.sender) == 0) {
+            passId = IBrainPassNFT(brainPassNFTAddress).mintPass(msg.sender);
+        } else {
+            // Wallet already has a pass (migrated from V1) — reuse existing token
+            passId = IBrainPassNFT(brainPassNFTAddress).userPassId(msg.sender);
+        }
+
         emit ProfileCreated(msg.sender, _username, block.timestamp, passId);
         return passId;
     }
