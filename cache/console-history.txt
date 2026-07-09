@@ -1,0 +1,15 @@
+})  ])    "0x5DB38074106Da03E5Cfa78FF168622d096bc0261"  data: registry.interface.encodeFunctionData("getProfile", [  to: await registry.getAddress(),await registry.runner.provider.call({
+await registry.interface.getFunction("getProfile").selector
+await signer.getAddress()
+const [signer] = await ethers.getSigners()
+await s
+const [signer] = await ethers.getSigners()
+)"0x9693952eBd35616Cc9B325e9E68CBA1f889e56bf"await ethers.provider.getCode(
+await registry.getAddress()
+)  "0x9693952eBd35616Cc9B325e9E68CBA1f889e56bf"  "BrainRegistry",const registry = await ethers.getContractAt(
+await ethers.provider.getNetwork()
+await registry.getProfile("0x5DB38074106Da03E5Cfa78FF168622d096bc0261")
+)
+  "0x9693952eBd35616Cc9B325e9E68CBA1f889e56bf"  "BrainRegistry",
+await registry.getProfile("TUMHARA_WALLET_ADDRESS"const registry = await ethers.getContractAt(
+)  "0x9693952eBd35616Cc9B325e9E68CBA1f889e56bf"  "BrainRegistry",const registry = await ethers.getContractAt(
