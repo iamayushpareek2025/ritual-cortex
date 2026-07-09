@@ -166,6 +166,58 @@ export default function App() {
     { rank: 6, name: 'Alan Turing', role: 'ZKP Cryptographer', sync: '89.5%', gflops: '281,409', hash: '0x6e2c...b195' }
   ]);
 
+  // Sync user row on global leaderboard whenever profile or connection state changes.
+  // Dynamically calculates GFLOPS from on-chain data: (brainScore * 1000) + (level * 5000) + (xp * 10).
+  // Automatically sorts the leaderboard by GFLOPS in descending order.
+  useEffect(() => {
+    const baseRows = [
+      { name: 'Vitalik Notion', role: 'ZKP Cryptographer', sync: '98.4%', gflops: '849,201', hash: '0x3f5c...92be' },
+      { name: 'Guillermo Linear', role: 'Cortex Integrator', sync: '96.2%', gflops: '722,014', hash: '0x7e8a...02cd' },
+      { name: 'Amjad Apple', role: 'Neural Architect', sync: '94.8%', gflops: '652,800', hash: '0x1c9f...a801' },
+      { name: 'Satoshi Vercel', role: 'Cortex Integrator', sync: '92.4%', gflops: '480,240', hash: '0x7a83...f40e', isUser: true },
+      { name: 'Ada Lovelace', role: 'Neural Architect', sync: '91.1%', gflops: '394,152', hash: '0x8f2d...d210' },
+      { name: 'Alan Turing', role: 'ZKP Cryptographer', sync: '89.5%', gflops: '281,409', hash: '0x6e2c...b195' }
+    ];
+
+    const updatedRows = baseRows.map(row => {
+      if (row.isUser) {
+        if (isConnected) {
+          const syncVal = hasProfile ? (profile?.brainScore > 0 ? `${profile.brainScore}%` : 'Not Scanned') : '--';
+          const calculatedGflops = hasProfile 
+            ? ((profile?.brainScore * 1000) + (profile?.level * 5000) + (profile?.xp * 10)).toLocaleString() 
+            : '--';
+          return {
+            ...row,
+            name: hasProfile ? (profile.username || 'Anonymous Developer') : `Node ${address ? address.slice(0, 6) : '0x0000'}`,
+            role: hasProfile ? (profileForm.role || 'Cortex Integrator') : '--',
+            sync: syncVal,
+            gflops: calculatedGflops,
+            hash: address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '0x0000...0000',
+          };
+        } else {
+          return row; // Keep default Satoshi Vercel mock row if disconnected
+        }
+      }
+      return row;
+    });
+
+    // Helper to parse GFLOPS value safely, treating '--' as -1 to place at bottom when sorted descending
+    const parseGflopsVal = (val) => {
+      if (val === '--' || !val) return -1;
+      return parseInt(val.toString().replace(/,/g, ''), 10);
+    };
+
+    // Sort leaderboard by GFLOPS in descending order
+    updatedRows.sort((a, b) => parseGflopsVal(b.gflops) - parseGflopsVal(a.gflops));
+
+    // Reassign rank according to sorted list index
+    updatedRows.forEach((row, idx) => {
+      row.rank = idx + 1;
+    });
+
+    setLeaderboardData(updatedRows);
+  }, [isConnected, address, hasProfile, profile, profileForm.role]);
+
   // Sync profile card form whenever on-chain profile data arrives / changes
   useEffect(() => {
     if (!hasProfile || !profile) return;
@@ -805,14 +857,14 @@ export default function App() {
         let valB = b[column];
 
         if (column === 'gflops') {
-          valA = parseInt(valA.replace(/,/g, ''), 10);
-          valB = parseInt(valB.replace(/,/g, ''), 10);
+          valA = (valA === '--' || !valA) ? -1 : parseInt(valA.toString().replace(/,/g, ''), 10);
+          valB = (valB === '--' || !valB) ? -1 : parseInt(valB.toString().replace(/,/g, ''), 10);
         } else if (column === 'sync') {
-          valA = parseFloat(valA.replace(/%/g, ''));
-          valB = parseFloat(valB.replace(/%/g, ''));
+          valA = (valA === 'Not Scanned' || valA === '--' || !valA) ? -1 : parseFloat(valA.toString().replace(/%/g, ''));
+          valB = (valB === 'Not Scanned' || valB === '--' || !valB) ? -1 : parseFloat(valB.toString().replace(/%/g, ''));
         } else if (column === 'rank') {
-          valA = parseInt(valA, 10);
-          valB = parseInt(valB, 10);
+          valA = parseInt(valA || '0', 10);
+          valB = parseInt(valB || '0', 10);
         }
 
         if (valA < valB) return sortAscending ? -1 : 1;
