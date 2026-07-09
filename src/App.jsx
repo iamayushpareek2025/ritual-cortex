@@ -900,20 +900,24 @@ export default function App() {
       <header>
         <div className="container nav-wrapper">
           <a href="#" className="logo" onClick={(e) => { e.preventDefault(); handlePageChange('landing'); }}>
+            {/* Ritual Brain — custom geometric logo inspired by Ritual network's node mesh */}
             <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="16" cy="6" r="3" fill="#8b5cf6" />
-              <circle cx="8" cy="14" r="3" fill="#3b82f6" />
-              <circle cx="24" cy="14" r="3" fill="#3b82f6" />
-              <circle cx="16" cy="22" r="3" fill="#8b5cf6" />
-              <circle cx="8" cy="26" r="2.5" fill="#ec4899" />
-              <circle cx="24" cy="26" r="2.5" fill="#ec4899" />
-              <line x1="16" y1="9" x2="8" y2="14" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
-              <line x1="16" y1="9" x2="24" y2="14" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
-              <line x1="8" y1="14" x2="16" y2="22" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
-              <line x1="24" y1="14" x2="16" y2="22" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
-              <line x1="16" y1="22" x2="8" y2="26" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
-              <line x1="16" y1="22" x2="24" y2="26" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
-              <path d="M16 6C16 11.5 13 11.5 8 14M16 6C16 11.5 19 11.5 24 14" stroke="#8b5cf6" strokeWidth="1" strokeDasharray="2 2" />
+              {/* Outer ring */}
+              <circle cx="16" cy="16" r="14" stroke="url(#rg)" strokeWidth="1.5" />
+              {/* Inner R letterform */}
+              <path d="M10 8h7a4 4 0 0 1 0 8h-7V8Z" stroke="#8b5cf6" strokeWidth="1.8" strokeLinejoin="round" fill="none" />
+              <path d="M17 16l5 8" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round" />
+              <path d="M10 16h5" stroke="#8b5cf6" strokeWidth="1.8" strokeLinecap="round" />
+              {/* Glow dots */}
+              <circle cx="10" cy="8" r="1.5" fill="#8b5cf6" />
+              <circle cx="10" cy="24" r="1.5" fill="#3b82f6" />
+              <circle cx="22" cy="24" r="1.5" fill="#ec4899" />
+              <defs>
+                <linearGradient id="rg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#8b5cf6" />
+                  <stop offset="1" stopColor="#3b82f6" />
+                </linearGradient>
+              </defs>
             </svg>
             <span>Ritual Brain</span>
           </a>
@@ -1797,10 +1801,37 @@ export default function App() {
                 <div className="wallet-option" onClick={() => handleConnectWallet('metamask')}>
                   <div className="wallet-option-left">
                     <div className="wallet-option-logo">
-                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22 12L12 2L2 12L12 22L22 12Z" stroke="#f97316" strokeWidth="1.5" />
-                        <path d="M12 22V12L22 12" stroke="#f97316" strokeWidth="1" />
-                        <circle cx="12" cy="12" r="3" fill="#f97316" />
+                      {/* MetaMask official fox SVG — accurate brand logo */}
+                      <svg viewBox="0 0 318.6 318.6" xmlns="http://www.w3.org/2000/svg">
+                        <polygon points="274.1,35.5 174.6,109.4 193.6,65" style={{fill:'#e2761b',stroke:'#e2761b',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="44.4,35.5 143.1,110.1 125.1,65" style={{fill:'#e4761b',stroke:'#e4761b',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="238.3,206.8 211.8,247.4 268.5,263 284.8,207.7" style={{fill:'#e4761b',stroke:'#e4761b',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="33.9,207.7 50.1,263 106.8,247.4 80.3,206.8" style={{fill:'#e4761b',stroke:'#e4761b',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="103.6,138.2 87.8,162.1 144.1,164.6 142.1,104.1" style={{fill:'#e4761b',stroke:'#e4761b',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="214.9,138.2 175.9,103.4 174.6,164.6 230.8,162.1" style={{fill:'#e4761b',stroke:'#e4761b',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="106.8,247.4 140.6,230.9 111.4,208.1" style={{fill:'#e4761b',stroke:'#e4761b',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="177.9,230.9 211.8,247.4 207.1,208.1" style={{fill:'#e4761b',stroke:'#e4761b',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="211.8,247.4 177.9,230.9 180.6,253 180.3,262.3" style={{fill:'#d7c1b3',stroke:'#d7c1b3',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="106.8,247.4 138.3,262.3 138.1,253 140.6,230.9" style={{fill:'#d7c1b3',stroke:'#d7c1b3',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="138.8,193.5 110.6,185.2 130.5,176.1" style={{fill:'#233447',stroke:'#233447',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="179.7,193.5 188,176.1 207.9,185.2" style={{fill:'#233447',stroke:'#233447',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="106.8,247.4 111.6,206.8 80.3,207.7" style={{fill:'#cd6116',stroke:'#cd6116',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="207,206.8 211.8,247.4 238.3,207.7" style={{fill:'#cd6116',stroke:'#cd6116',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="230.8,162.1 174.6,164.6 179.8,193.5 188.1,176.1 208,185.2" style={{fill:'#cd6116',stroke:'#cd6116',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="110.6,185.2 130.5,176.1 138.8,193.5 144.1,164.6 87.8,162.1" style={{fill:'#cd6116',stroke:'#cd6116',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="87.8,162.1 111.4,208.1 110.6,185.2" style={{fill:'#e4751f',stroke:'#e4751f',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="208,185.2 207.1,208.1 230.8,162.1" style={{fill:'#e4751f',stroke:'#e4751f',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="144.1,164.6 138.8,193.5 145.4,227.6 146.9,182.7" style={{fill:'#e4751f',stroke:'#e4751f',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="174.6,164.6 171.9,182.6 179.8,193.5" style={{fill:'#e4751f',stroke:'#e4751f',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="145.4,227.6 138.8,193.5 110.6,185.2 111.4,208.1" style={{fill:'#f6851b',stroke:'#f6851b',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="207.1,208.1 208,185.2 179.8,193.5 174.6,164.6 171.9,182.6 179.8,193.5" style={{fill:'#f6851b',stroke:'#f6851b',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="180.3,262.3 180.6,253 178.1,250.8 140.4,250.8 138.1,253 138.3,262.3 106.8,247.4 117.8,256.4 140.1,271.9 178.4,271.9 200.8,256.4 211.8,247.4" style={{fill:'#c0ad9e',stroke:'#c0ad9e',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="177.9,230.9 174.9,228.6 143.6,228.6 140.6,230.9 138.1,253 140.4,250.8 178.1,250.8" style={{fill:'#161616',stroke:'#161616',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="278.3,114.2 286.8,73.4 274.1,35.5 177.9,106.9 214.9,138.2 267.2,153.5 278.8,140 273.8,136.4 281.8,129.1 275.6,124.3 283.6,118.2" style={{fill:'#763d16',stroke:'#763d16',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="31.8,73.4 40.3,114.2 34.9,118.2 42.9,124.3 36.8,129.1 44.8,136.4 39.8,140 51.3,153.5 103.6,138.2 140.6,106.9 44.4,35.5" style={{fill:'#763d16',stroke:'#763d16',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="267.2,153.5 214.9,138.2 230.8,162.1 207.1,208.1 238.3,207.7 284.8,207.7" style={{fill:'#f6851b',stroke:'#f6851b',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="103.6,138.2 51.3,153.5 33.9,207.7 80.3,207.7 111.4,208.1 87.8,162.1" style={{fill:'#f6851b',stroke:'#f6851b',strokeLinecap:'round',strokeLinejoin:'round'}} />
+                        <polygon points="174.6,164.6 177.9,106.9 193.6,65 125.1,65 140.6,106.9 144.1,164.6 145.3,182.8 145.4,227.6 173.1,227.6 173.3,182.8" style={{fill:'#f6851b',stroke:'#f6851b',strokeLinecap:'round',strokeLinejoin:'round'}} />
                       </svg>
                     </div>
                     <span className="wallet-option-name">MetaMask</span>
@@ -1811,9 +1842,10 @@ export default function App() {
                 <div className="wallet-option" onClick={() => handleConnectWallet('coinbase')}>
                   <div className="wallet-option-left">
                     <div className="wallet-option-logo">
-                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="3" y="3" width="18" height="18" rx="4" fill="#2563eb" />
-                        <rect x="7" y="7" width="10" height="10" rx="1" fill="#fff" />
+                      {/* Coinbase Wallet official logo — blue circle, white C cutout */}
+                      <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="1024" height="1024" rx="220" fill="#0052FF"/>
+                        <path d="M512 170C323.4 170 170 323.4 170 512C170 700.6 323.4 854 512 854C700.6 854 854 700.6 854 512C854 323.4 700.6 170 512 170ZM664 564H596C578.3 564 564 578.3 564 596V664C564 681.7 549.7 696 532 696H492C474.3 696 460 681.7 460 664V596C460 578.3 445.7 564 428 564H360C342.3 564 328 549.7 328 532V492C328 474.3 342.3 460 360 460H428C445.7 460 460 445.7 460 428V360C460 342.3 474.3 328 492 328H532C549.7 328 564 342.3 564 360V428C564 445.7 578.3 460 596 460H664C681.7 460 696 474.3 696 492V532C696 549.7 681.7 564 664 564Z" fill="white"/>
                       </svg>
                     </div>
                     <span className="wallet-option-name">Coinbase Wallet</span>
