@@ -3,7 +3,16 @@ import { useWallet } from './web3/hooks/useWallet';
 import { useNetwork } from './web3/hooks/useNetwork';
 import { useProfile } from './web3/hooks/useProfile';
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { createPublicClient, http } from 'viem';
+import { ritualTestnet } from './web3/chains';
 import { CONTRACT_ADDRESSES, BRAIN_REGISTRY_ABI, BRAIN_PASS_ABI, XP_BADGE_ABI } from './web3/contracts';
+
+// Viem public client for direct contract reads (used by the global leaderboard builder)
+const publicClient = createPublicClient({
+  chain: ritualTestnet,
+  transport: http('https://rpc.ritualfoundation.org'),
+});
+
 
 export default function App() {
   // --- SPA Page Router State ---
@@ -98,6 +107,14 @@ export default function App() {
     query: { enabled: !!address && !isWrongNetwork },
   });
 
+  // --- Fetch all registered builder addresses from V2 contract ---
+  const { data: registeredBuilders, refetch: refetchBuilders } = useReadContract({
+    address: CONTRACT_ADDRESSES.registry,
+    abi: BRAIN_REGISTRY_ABI,
+    functionName: 'getRegisteredBuilders',
+    query: { enabled: !isWrongNetwork },
+  });
+
   /** Refetch everything after a confirmed transaction. */
   const refetchAllOnChainData = () => {
     refetchProfile();
@@ -106,6 +123,7 @@ export default function App() {
     refetchBadge1();
     refetchBadge2();
     refetchBadge3();
+    refetchBuilders();
   };
 
   // --- Brain Scan Simulator States ---
@@ -166,57 +184,110 @@ export default function App() {
     { rank: 6, name: 'Alan Turing', role: 'ZKP Cryptographer', sync: '89.5%', gflops: '281,409', hash: '0x6e2c...b195' }
   ]);
 
-  // Sync user row on global leaderboard whenever profile or connection state changes.
-  // Dynamically calculates GFLOPS from on-chain data: (brainScore * 1000) + (level * 5000) + (xp * 10).
-  // Automatically sorts the leaderboard by GFLOPS in descending order.
+  // --- Real global leaderboard: fetch all registered builders from V2 + merge mock rows ---
+  // Triggers whenever: registered builder list changes, connected wallet profile changes, network changes.
   useEffect(() => {
-    const baseRows = [
-      { name: 'Vitalik Notion', role: 'ZKP Cryptographer', sync: '98.4%', gflops: '849,201', hash: '0x3f5c...92be' },
-      { name: 'Guillermo Linear', role: 'Cortex Integrator', sync: '96.2%', gflops: '722,014', hash: '0x7e8a...02cd' },
-      { name: 'Amjad Apple', role: 'Neural Architect', sync: '94.8%', gflops: '652,800', hash: '0x1c9f...a801' },
-      { name: 'Satoshi Vercel', role: 'Cortex Integrator', sync: '92.4%', gflops: '480,240', hash: '0x7a83...f40e', isUser: true },
-      { name: 'Ada Lovelace', role: 'Neural Architect', sync: '91.1%', gflops: '394,152', hash: '0x8f2d...d210' },
-      { name: 'Alan Turing', role: 'ZKP Cryptographer', sync: '89.5%', gflops: '281,409', hash: '0x6e2c...b195' }
-    ];
-
-    const updatedRows = baseRows.map(row => {
-      if (row.isUser) {
-        if (isConnected) {
-          const syncVal = hasProfile ? (profile?.brainScore > 0 ? `${profile.brainScore}%` : 'Not Scanned') : '--';
-          const calculatedGflops = hasProfile 
-            ? ((profile?.brainScore * 1000) + (profile?.level * 5000) + (profile?.xp * 10)).toLocaleString() 
-            : '--';
-          return {
-            ...row,
-            name: hasProfile ? (profile.username || 'Anonymous Developer') : `Node ${address ? address.slice(0, 6) : '0x0000'}`,
-            role: hasProfile ? (profileForm.role || 'Cortex Integrator') : '--',
-            sync: syncVal,
-            gflops: calculatedGflops,
-            hash: address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '0x0000...0000',
-          };
-        } else {
-          return row; // Keep default Satoshi Vercel mock row if disconnected
-        }
-      }
-      return row;
-    });
-
-    // Helper to parse GFLOPS value safely, treating '--' as -1 to place at bottom when sorted descending
+    // Helper to parse a GFLOPS string safely
     const parseGflopsVal = (val) => {
       if (val === '--' || !val) return -1;
       return parseInt(val.toString().replace(/,/g, ''), 10);
     };
 
-    // Sort leaderboard by GFLOPS in descending order
-    updatedRows.sort((a, b) => parseGflopsVal(b.gflops) - parseGflopsVal(a.gflops));
+    // Static mock rows shown when real builder count is low (or chain is unavailable).
+    // These are clearly fictional placeholders and will be displaced by real builders as GFLOPS grows.
+    const mockRows = [
+      { name: 'Vitalik Notion',    role: 'ZKP Cryptographer',  sync: '98.4%', gflops: '849,201', hash: '0x3f5c...92be', isMock: true },
+      { name: 'Guillermo Linear',  role: 'Cortex Integrator',  sync: '96.2%', gflops: '722,014', hash: '0x7e8a...02cd', isMock: true },
+      { name: 'Amjad Apple',       role: 'Neural Architect',   sync: '94.8%', gflops: '652,800', hash: '0x1c9f...a801', isMock: true },
+      { name: 'Ada Lovelace',      role: 'Neural Architect',   sync: '91.1%', gflops: '394,152', hash: '0x8f2d...d210', isMock: true },
+      { name: 'Alan Turing',       role: 'ZKP Cryptographer',  sync: '89.5%', gflops: '281,409', hash: '0x6e2c...b195', isMock: true },
+    ];
 
-    // Reassign rank according to sorted list index
-    updatedRows.forEach((row, idx) => {
-      row.rank = idx + 1;
-    });
+    async function buildLeaderboard() {
+      let onChainRows = [];
 
-    setLeaderboardData(updatedRows);
-  }, [isConnected, address, hasProfile, profile, profileForm.role]);
+      // Step 1: get the list of all builder addresses from V2 contract
+      const builderAddresses = Array.isArray(registeredBuilders) ? registeredBuilders : [];
+      console.log('[LEADERBOARD] registered builders from chain:', builderAddresses);
+
+      // Step 2: fetch each profile
+      for (const addr of builderAddresses) {
+        try {
+          const raw = await publicClient.readContract({
+            address: CONTRACT_ADDRESSES.registry,
+            abi: BRAIN_REGISTRY_ABI,
+            functionName: 'getProfile',
+            args: [addr],
+          });
+
+          if (!raw || !raw.exists) continue;
+
+          const safeNum = (v, fb = 0) => {
+            const n = Number(v);
+            return Number.isFinite(n) ? n : fb;
+          };
+
+          const bs  = safeNum(raw.brainScore, 0);
+          const lvl = safeNum(raw.level, 1);
+          const xp  = safeNum(raw.xp, 0);
+          const calcGflops = (bs * 1000) + (lvl * 5000) + (xp * 10);
+
+          onChainRows.push({
+            address:  addr,
+            name:     raw.username || `Node ${addr.slice(0, 6)}`,
+            role:     'Cortex Builder',
+            sync:     bs > 0 ? `${bs}%` : 'Not Scanned',
+            gflops:   calcGflops > 0 ? calcGflops.toLocaleString() : '--',
+            hash:     `${addr.slice(0, 6)}...${addr.slice(-4)}`,
+            isOnChain: true,
+            // Mark row as the connected wallet's row
+            isUser:   isConnected && address && addr.toLowerCase() === address.toLowerCase(),
+          });
+        } catch (err) {
+          console.warn('[LEADERBOARD] getProfile failed for', addr, err.message);
+        }
+      }
+
+      // Step 3: If connected wallet has a profile but wasn't in the builders list
+      // (edge case: they created profile on V1), inject their row too.
+      if (isConnected && address && hasProfile && profile) {
+        const alreadyIncluded = onChainRows.some(
+          r => r.address && r.address.toLowerCase() === address.toLowerCase()
+        );
+        if (!alreadyIncluded) {
+          const bs  = profile.brainScore || 0;
+          const lvl = profile.level || 1;
+          const xp  = profile.xp || 0;
+          const calcGflops = (bs * 1000) + (lvl * 5000) + (xp * 10);
+          onChainRows.push({
+            address: address,
+            name:    profile.username || 'Anonymous Developer',
+            role:    profileForm.role || 'Cortex Integrator',
+            sync:    bs > 0 ? `${bs}%` : 'Not Scanned',
+            gflops:  calcGflops > 0 ? calcGflops.toLocaleString() : '--',
+            hash:    `${address.slice(0, 6)}...${address.slice(-4)}`,
+            isOnChain: true,
+            isUser:  true,
+          });
+        }
+      }
+
+      // Step 4: merge — add mock rows only if they do not duplicate a real builder
+      // (keep mocks to fill leaderboard when chain has few builders)
+      const allRows = [...onChainRows, ...mockRows];
+
+      // Step 5: sort by GFLOPS descending, assign ranks
+      allRows.sort((a, b) => parseGflopsVal(b.gflops) - parseGflopsVal(a.gflops));
+      allRows.forEach((row, idx) => { row.rank = idx + 1; });
+
+      console.log('[LEADERBOARD] final rows:', allRows.length, '(on-chain:', onChainRows.length, ', mock:', mockRows.length, ')');
+      setLeaderboardData(allRows);
+    }
+
+    buildLeaderboard();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registeredBuilders, isConnected, address, hasProfile, profile, profileForm.role, isWrongNetwork]);
+
 
   // Sync profile card form whenever on-chain profile data arrives / changes
   useEffect(() => {
@@ -244,28 +315,8 @@ export default function App() {
     }
   }, [hasProfile, profile]);
 
-  // Sync user row on global leaderboard whenever profile changes
-  useEffect(() => {
-    if (!hasProfile || !profile) return;
 
-    const syncVal = profile.brainScore > 0 ? `${profile.brainScore}%` : 'Not Scanned';
-    const calculatedGflops = (profile.xp * 12).toLocaleString();
 
-    setLeaderboardData(prev =>
-      prev.map(row =>
-        row.isUser
-          ? {
-              ...row,
-              name:   profile.username || 'Anonymous Developer',
-              role:   profileForm.role,
-              sync:   syncVal,
-              gflops: calculatedGflops,
-              hash:   address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '0x0000...0000',
-            }
-          : row
-      )
-    );
-  }, [hasProfile, profile, profileForm.role, address]);
 
   // Load user's locally-saved verified proof hash on wallet connect
   useEffect(() => {
