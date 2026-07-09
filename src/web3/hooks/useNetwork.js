@@ -2,7 +2,7 @@ import { useAccount, useSwitchChain } from 'wagmi';
 
 export function useNetwork() {
   const { chain } = useAccount();
-  const { switchChain, switchChainAsync, chains } = useSwitchChain();
+  const { switchChain, switchChainAsync } = useSwitchChain();
 
   // Connected but chain ID is not 1979 (Ritual Testnet)
   const isWrongNetwork = chain ? chain.id !== 1979 : false;
@@ -21,9 +21,7 @@ export function useNetwork() {
 
   return {
     chain,
-    chains,
     switchChain: handleSwitchToRitual,
-    rawSwitchChain: switchChain,
     isWrongNetwork,
   };
 }

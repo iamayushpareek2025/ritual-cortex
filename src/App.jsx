@@ -124,6 +124,7 @@ export default function App() {
     refetchBadge2();
     refetchBadge3();
     refetchBuilders();
+    refetchBalance();
   };
 
   // --- Brain Scan Simulator States ---
@@ -157,10 +158,11 @@ export default function App() {
   const chatBottomRef = useRef(null);
 
   // --- Builder Profile Card States ---
+  // Initialized with empty/default values; hydrated from on-chain profile by useEffect.
   const [profileForm, setProfileForm] = useState({
-    name: 'Satoshi Vercel',
+    name: '',
     role: 'Cortex Integrator',
-    bio: 'Synthesizing multi-modal language model layers with low-latency GPU validator pools. Building the web3 neural mesh on Ritual.',
+    bio: '',
     skills: {
       Solidity: true,
       Rust: true,
@@ -175,17 +177,13 @@ export default function App() {
   // --- Global Leaderboard States ---
   const [leaderboardSearch, setLeaderboardSearch] = useState('');
   const [sortAscending, setSortAscending] = useState(false);
-  const [leaderboardData, setLeaderboardData] = useState([
-    { rank: 1, name: 'Vitalik Notion', role: 'ZKP Cryptographer', sync: '98.4%', gflops: '849,201', hash: '0x3f5c...92be' },
-    { rank: 2, name: 'Guillermo Linear', role: 'Cortex Integrator', sync: '96.2%', gflops: '722,014', hash: '0x7e8a...02cd' },
-    { rank: 3, name: 'Amjad Apple', role: 'Neural Architect', sync: '94.8%', gflops: '652,800', hash: '0x1c9f...a801' },
-    { rank: 4, name: 'Satoshi Vercel', role: 'Cortex Integrator', sync: '92.4%', gflops: '480,240', hash: '0x7a83...f40e', isUser: true },
-    { rank: 5, name: 'Ada Lovelace', role: 'Neural Architect', sync: '91.1%', gflops: '394,152', hash: '0x8f2d...d210' },
-    { rank: 6, name: 'Alan Turing', role: 'ZKP Cryptographer', sync: '89.5%', gflops: '281,409', hash: '0x6e2c...b195' }
-  ]);
+  // Start empty — buildLeaderboard() populates this (including mock rows) on first run.
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
 
   // --- Real global leaderboard: fetch all registered builders from V2 + merge mock rows ---
-  // Triggers whenever: registered builder list changes, connected wallet profile changes, network changes.
+  // Triggers ONLY when registeredBuilders list or network changes.
+  // The connected wallet NEVER controls which builders are displayed; it only affects isUser highlighting.
   useEffect(() => {
     // Helper to parse a GFLOPS string safely
     const parseGflopsVal = (val) => {
@@ -194,7 +192,6 @@ export default function App() {
     };
 
     // Static mock rows shown when real builder count is low (or chain is unavailable).
-    // These are clearly fictional placeholders and will be displaced by real builders as GFLOPS grows.
     const mockRows = [
       { name: 'Vitalik Notion',    role: 'ZKP Cryptographer',  sync: '98.4%', gflops: '849,201', hash: '0x3f5c...92be', isMock: true },
       { name: 'Guillermo Linear',  role: 'Cortex Integrator',  sync: '96.2%', gflops: '722,014', hash: '0x7e8a...02cd', isMock: true },
@@ -204,89 +201,70 @@ export default function App() {
     ];
 
     async function buildLeaderboard() {
+      setLeaderboardLoading(true);
       let onChainRows = [];
 
       // Step 1: get the list of all builder addresses from V2 contract
       const builderAddresses = Array.isArray(registeredBuilders) ? registeredBuilders : [];
-      console.log('[LEADERBOARD] registered builders from chain:', builderAddresses);
 
-      // Step 2: fetch each profile
-      for (const addr of builderAddresses) {
-        try {
-          const raw = await publicClient.readContract({
-            address: CONTRACT_ADDRESSES.registry,
-            abi: BRAIN_REGISTRY_ABI,
-            functionName: 'getProfile',
-            args: [addr],
-          });
+      try {
+        // Step 2: fetch each profile
+        for (const addr of builderAddresses) {
+          try {
+            const raw = await publicClient.readContract({
+              address: CONTRACT_ADDRESSES.registry,
+              abi: BRAIN_REGISTRY_ABI,
+              functionName: 'getProfile',
+              args: [addr],
+            });
 
-          if (!raw || !raw.exists) continue;
+            if (!raw || !raw.exists) continue;
 
-          const safeNum = (v, fb = 0) => {
-            const n = Number(v);
-            return Number.isFinite(n) ? n : fb;
-          };
+            const safeNum = (v, fb = 0) => {
+              const n = Number(v);
+              return Number.isFinite(n) ? n : fb;
+            };
 
-          const bs  = safeNum(raw.brainScore, 0);
-          const lvl = safeNum(raw.level, 1);
-          const xp  = safeNum(raw.xp, 0);
-          const calcGflops = (bs * 1000) + (lvl * 5000) + (xp * 10);
+            const bs  = safeNum(raw.brainScore, 0);
+            const lvl = safeNum(raw.level, 1);
+            const xp  = safeNum(raw.xp, 0);
+            const calcGflops = (bs * 1000) + (lvl * 5000) + (xp * 10);
 
-          onChainRows.push({
-            address:  addr,
-            name:     raw.username || `Node ${addr.slice(0, 6)}`,
-            role:     'Cortex Builder',
-            sync:     bs > 0 ? `${bs}%` : 'Not Scanned',
-            gflops:   calcGflops > 0 ? calcGflops.toLocaleString() : '--',
-            hash:     `${addr.slice(0, 6)}...${addr.slice(-4)}`,
-            isOnChain: true,
-            // Mark row as the connected wallet's row
-            isUser:   isConnected && address && addr.toLowerCase() === address.toLowerCase(),
-          });
-        } catch (err) {
-          console.warn('[LEADERBOARD] getProfile failed for', addr, err.message);
+            onChainRows.push({
+              address:  addr,
+              name:     raw.username || `Node ${addr.slice(0, 6)}`,
+              role:     'Cortex Builder',
+              sync:     bs > 0 ? `${bs}%` : 'Not Scanned',
+              gflops:   calcGflops > 0 ? calcGflops.toLocaleString() : '--',
+              hash:     `${addr.slice(0, 6)}...${addr.slice(-4)}`,
+              isOnChain: true,
+              // Mark row as the connected wallet's row (UI highlight only — never affects which rows appear)
+              isUser:   !!address && addr.toLowerCase() === address.toLowerCase(),
+            });
+          } catch (err) {
+            console.warn('[LEADERBOARD] getProfile failed for', addr, err.message);
+          }
         }
+      } catch (rpcErr) {
+        // Entire RPC call failed — surface a user-friendly message and fall back to mocks
+        console.warn('[LEADERBOARD] RPC failure, falling back to mock data:', rpcErr.message);
+        addToast('⚠️ Could not reach Ritual RPC. Showing placeholder data.', 'error');
       }
 
-      // Step 3: If connected wallet has a profile but wasn't in the builders list
-      // (edge case: they created profile on V1), inject their row too.
-      if (isConnected && address && hasProfile && profile) {
-        const alreadyIncluded = onChainRows.some(
-          r => r.address && r.address.toLowerCase() === address.toLowerCase()
-        );
-        if (!alreadyIncluded) {
-          const bs  = profile.brainScore || 0;
-          const lvl = profile.level || 1;
-          const xp  = profile.xp || 0;
-          const calcGflops = (bs * 1000) + (lvl * 5000) + (xp * 10);
-          onChainRows.push({
-            address: address,
-            name:    profile.username || 'Anonymous Developer',
-            role:    profileForm.role || 'Cortex Integrator',
-            sync:    bs > 0 ? `${bs}%` : 'Not Scanned',
-            gflops:  calcGflops > 0 ? calcGflops.toLocaleString() : '--',
-            hash:    `${address.slice(0, 6)}...${address.slice(-4)}`,
-            isOnChain: true,
-            isUser:  true,
-          });
-        }
-      }
-
-      // Step 4: merge — add mock rows only if they do not duplicate a real builder
-      // (keep mocks to fill leaderboard when chain has few builders)
+      // Step 3: merge — add mock rows to fill leaderboard when chain has few builders
       const allRows = [...onChainRows, ...mockRows];
 
-      // Step 5: sort by GFLOPS descending, assign ranks
+      // Step 4: sort by GFLOPS descending, assign ranks
       allRows.sort((a, b) => parseGflopsVal(b.gflops) - parseGflopsVal(a.gflops));
       allRows.forEach((row, idx) => { row.rank = idx + 1; });
 
-      console.log('[LEADERBOARD] final rows:', allRows.length, '(on-chain:', onChainRows.length, ', mock:', mockRows.length, ')');
       setLeaderboardData(allRows);
+      setLeaderboardLoading(false);
     }
 
     buildLeaderboard();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [registeredBuilders, isConnected, address, hasProfile, profile, profileForm.role, isWrongNetwork]);
+  }, [registeredBuilders, isWrongNetwork]);
 
 
   // Sync profile card form whenever on-chain profile data arrives / changes
@@ -368,6 +346,7 @@ export default function App() {
         refetchAllOnChainData();
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, address, isWrongNetwork]);
 
   // --- Contract Interaction Actions ---
@@ -381,24 +360,9 @@ export default function App() {
 
   useEffect(() => {
     if (txSuccess && txReceipt) {
-      // BUG FIX 1: use case-insensitive check.
-      // txState.statusMessage is 'XP and Brain Score update submitted...'
-      // which contains 'Brain Score' (capital), not 'brain score' (lowercase).
-      // Without toLowerCase(), includes('brain score') returns false and
-      // setVerificationMetadata() is never called.
       const msgLower = txState.statusMessage.toLowerCase();
       const isVerifyTx = msgLower.includes('brain score');
       const isCreateTx = msgLower.includes('creation');
-
-      // DEBUG: trace exactly what fired
-      console.log('[TX CONFIRMED]', {
-        hash:        txReceipt.transactionHash,
-        blockNumber: txReceipt.blockNumber?.toString(),
-        status:      txReceipt.status,
-        statusMessage: txState.statusMessage,
-        isVerifyTx,
-        isCreateTx,
-      });
 
       setTxState(prev => ({ ...prev, loading: false, statusMessage: 'Transaction confirmed! 🎉' }));
 
@@ -409,7 +373,6 @@ export default function App() {
           timestamp:   new Date().toLocaleString(),
           success:     txReceipt.status === 'success',
         };
-        console.log('[VERIFICATION METADATA SET]', meta);
         setVerificationMetadata(meta);
         addToast('Brain scan verified on-chain!', 'success');
       } else {
@@ -418,11 +381,6 @@ export default function App() {
 
       // Refetch all on-chain state so every page re-renders with real data
       refetchAllOnChainData();
-
-      // DEBUG: log updated profile after refetch
-      setTimeout(() => {
-        console.log('[PROFILE AFTER REFETCH]', { profile, hasProfile });
-      }, 2000);
     }
     if (waitError) {
       setTxState(prev => ({
@@ -433,6 +391,7 @@ export default function App() {
       }));
       addToast('Transaction execution failed.', 'error');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [txSuccess, txReceipt, waitError]);
 
   // Call createProfile on BrainRegistry
@@ -502,15 +461,13 @@ export default function App() {
     }
     const avgScore = Math.round((scanState.traits.analytical + scanState.traits.creative + scanState.traits.crypto + scanState.traits.empathy) / 4);
 
-    console.log('[VERIFY SCAN] submitting updateBrainScore', { address, avgScore, scanState });
-
     setTxState({
       loading: true,
       hash: '',
       error: false,
       errorMessage: '',
       // IMPORTANT: this message is used by the receipt effect to detect isVerifyTx.
-      // It contains 'brain score' (lowercase) — keep consistent with the includes() check.
+      // It must contain 'brain score' (lowercase) — keep consistent with the includes() check.
       statusMessage: 'Awaiting signature to verify brain score on-chain...'
     });
 
@@ -525,10 +482,7 @@ export default function App() {
       // Save generated proof hash locally in localStorage
       localStorage.setItem(`mentalHash_${address.toLowerCase()}`, scanState.mentalHash);
 
-      console.log('[VERIFY SCAN] tx submitted', { hash });
-
-      // IMPORTANT: keep 'brain score' (lowercase) in this message too so the
-      // receipt effect can still detect isVerifyTx via case-insensitive includes.
+      // IMPORTANT: keep 'brain score' (lowercase) so the receipt effect detects isVerifyTx.
       setTxState(prev => ({
         ...prev,
         hash,
@@ -767,14 +721,6 @@ export default function App() {
   };
 
   const handleMintProofCard = () => {
-    // BUG FIX 2: gate on verificationMetadata (on-chain proof), not scanState.completed (local scan).
-    // Previously: checked scanState.completed → showed "click Verify" even after verification
-    // Now: correctly requires on-chain receipt before allowing mint.
-    console.log('[MINT PROOF CARD] eligibility check', {
-      scanCompleted:        scanState.completed,
-      verificationMetadata: verificationMetadata,
-      eligible:             !!(scanState.completed && verificationMetadata),
-    });
     if (!scanState.completed) {
       addToast('Please complete a Brain Scan first.', 'error');
       return;
@@ -928,10 +874,11 @@ export default function App() {
 
   const filteredLeaderboard = leaderboardData.filter(row => {
     const q = leaderboardSearch.toLowerCase().trim();
+    if (!q) return true;
     return (
-      row.name.toLowerCase().includes(q) ||
-      row.role.toLowerCase().includes(q) ||
-      row.hash.toLowerCase().includes(q)
+      (row.name  || '').toLowerCase().includes(q) ||
+      (row.role  || '').toLowerCase().includes(q) ||
+      (row.hash  || '').toLowerCase().includes(q)
     );
   });
 
@@ -1497,13 +1444,10 @@ export default function App() {
                   
                   <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                      <button className="btn btn-secondary" onClick={handleSaveScanToProfile} style={{ flex: 1, fontSize: '0.85rem' }}>Save to Profile</button>
-                      <button className="btn btn-primary btn-glow" onClick={handleMintProofCard} style={{ flex: 1, fontSize: '0.85rem' }}>Mint Proof Card</button>
+                      <button className="btn btn-secondary" onClick={handleSaveScanToProfile} disabled={txState.loading} style={{ flex: 1, fontSize: '0.85rem' }}>Save to Profile</button>
+                      <button className="btn btn-primary btn-glow" onClick={handleMintProofCard} disabled={txState.loading} style={{ flex: 1, fontSize: '0.85rem' }}>Mint Proof Card</button>
                     </div>
                     
-                    {/* BUG FIX 3: show spinner while tx is loading (any stage), not just while
-                        statusMessage contains 'verify' — the message changes mid-flight and
-                        the spinner was disappearing while the tx was still pending. */}
                     {txState.loading ? (
                       <div style={{ textAlign: 'center', marginTop: '6px' }}>
                         <div className="connecting-spinner" style={{ margin: '0 auto 6px', width: '20px', height: '20px' }}></div>
@@ -1515,7 +1459,7 @@ export default function App() {
                       </button>
                     )}
                     
-                    {txState.error && txState.statusMessage.includes("verify") && (
+                    {txState.error && (
                       <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '6px', textAlign: 'center' }}>Error: {txState.errorMessage}</p>
                     )}
 
@@ -1764,7 +1708,7 @@ export default function App() {
                 </div>
 
                 <div style={{ marginTop: '20px' }}>
-                  {txState.loading && txState.statusMessage.includes("credentials") ? (
+                  {txState.loading ? (
                     <div style={{ textAlign: 'center' }}>
                       <div className="connecting-spinner" style={{ margin: '0 auto 8px', width: '24px', height: '24px' }}></div>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{txState.statusMessage}</span>
@@ -1775,11 +1719,11 @@ export default function App() {
                       )}
                     </div>
                   ) : (
-                    <button className="btn btn-primary btn-glow" onClick={handleUpdateProfileSubmit} style={{ width: '100%' }}>
+                    <button className="btn btn-primary btn-glow" onClick={handleUpdateProfileSubmit} disabled={txState.loading} style={{ width: '100%' }}>
                       Save Credentials to Blockchain
                     </button>
                   )}
-                  {txState.error && txState.statusMessage.includes("credentials") && (
+                  {txState.error && (
                     <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '6px', textAlign: 'center' }}>Error: {txState.errorMessage}</p>
                   )}
                 </div>
@@ -1791,7 +1735,7 @@ export default function App() {
                     <div className="card-logo">
                       <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="2" />
-                        <circle cx="16" cy="16" r="8" stroke="currentColor" stroke-dasharray="3 3" />
+                        <circle cx="16" cy="16" r="8" stroke="currentColor" strokeDasharray="3 3" />
                         <circle cx="16" cy="16" r="3" fill="currentColor" />
                       </svg>
                       <span>Ritual Identity</span>
@@ -1898,6 +1842,12 @@ export default function App() {
           </div>
 
           <div className="table-wrapper glass-panel">
+            {leaderboardLoading && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                <div className="connecting-spinner" style={{ width: '16px', height: '16px' }}></div>
+                <span>Syncing builder nodes from Ritual chain...</span>
+              </div>
+            )}
             <table className="leaderboard-table">
               <thead>
                 <tr>
@@ -1923,12 +1873,13 @@ export default function App() {
                   else if (row.rank === 3) badgeClass = 'rank-badge rank-3';
 
                   return (
-                    <tr key={idx}>
+                    <tr key={idx} style={row.isUser ? { background: 'rgba(139, 92, 246, 0.08)', outline: '1px solid rgba(139,92,246,0.2)' } : undefined}>
                       <td><span className={badgeClass}>{row.rank}</span></td>
                       <td>
                         <div className="leaderboard-builder-cell">
                           <div className="leaderboard-avatar">{init}</div>
-                          <span style={{ fontWeight: 600, color: '#fff' }}>{row.name}</span>
+                          <span style={{ fontWeight: 600, color: row.isUser ? '#c084fc' : '#fff' }}>{row.name}</span>
+                          {row.isUser && <span style={{ fontSize: '0.65rem', color: '#a78bfa', marginLeft: '6px', opacity: 0.8 }}>YOU</span>}
                         </div>
                       </td>
                       <td style={{ color: 'var(--text-secondary)' }}>{row.role}</td>
