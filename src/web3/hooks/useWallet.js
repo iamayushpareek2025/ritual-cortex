@@ -1,4 +1,5 @@
 import { useAccount, useConnect, useDisconnect, useBalance } from 'wagmi';
+import { formatUnits } from 'viem';
 
 export function useWallet() {
   const { address, isConnected, isConnecting } = useAccount();
@@ -14,24 +15,32 @@ export function useWallet() {
   if (address && balanceData !== undefined) {
     console.log('[useWallet] address:', address);
     console.log('[useWallet] raw balance object:', balanceData);
-    console.log('[useWallet] formatted field:', balanceData?.formatted);
+    console.log('[useWallet] value:', balanceData?.value?.toString());
+    console.log('[useWallet] decimals:', balanceData?.decimals);
   }
 
-  // Guard against NaN:
-  // On custom chains like Ritual Testnet, Wagmi may return balanceData with
-  // balanceData.formatted === undefined. parseFloat(undefined) = NaN, which
-  // propagates to the UI as "NaN RITUAL".
-  // Fix: use balanceData.formatted only when it is a valid non-empty string.
+  // Guard against NaN by formatting the raw bigint balance value manually.
+  // This ensures custom chain tokens (like RITUAL) format correctly even if Wagmi's formatted field is empty.
   const formattedBalance = (() => {
-    if (!balanceData) return null;                         // still loading
-    const raw = balanceData.formatted;
-    if (raw === undefined || raw === null || raw === '') return null;  // no data yet
-    const num = parseFloat(raw);
-    if (isNaN(num)) return null;                          // Wagmi returned garbage
+    if (!balanceData) return null;
+    const value = balanceData.value;
+    const decimals = balanceData.decimals ?? 18;
     const symbol = balanceData.symbol || 'RITUAL';
-    const result = `${num.toFixed(4)} ${symbol}`;
-    console.log('[useWallet] formatted balance:', result);
-    return result;
+
+    if (value === undefined || value === null) return null;
+
+    try {
+      // Convert raw bigint value to decimal string (e.g., 1000000000000000000n -> "1")
+      const formattedStr = formatUnits(value, decimals);
+      const num = parseFloat(formattedStr);
+      if (isNaN(num)) return null;
+      const result = `${num.toFixed(4)} ${symbol}`;
+      console.log('[useWallet] manually formatted balance:', result);
+      return result;
+    } catch (e) {
+      console.error('[useWallet] manually formatting failed:', e);
+      return null;
+    }
   })();
 
 
