@@ -202,13 +202,41 @@ export default function App() {
 
     async function buildLeaderboard() {
       setLeaderboardLoading(true);
-      let onChainRows = [];
+      console.log("=========================================");
+      console.log("[LEADERBOARD DEBUG] Refreshing leaderboard...");
+      console.log("Connected wallet:", address || 'Disconnected');
+      console.log("Active registry contract address:", CONTRACT_ADDRESSES.registry);
 
-      // Step 1: get the list of all builder addresses from V2 contract
-      const builderAddresses = Array.isArray(registeredBuilders) ? registeredBuilders : [];
+      let builderCount = 0n;
+      try {
+        builderCount = await publicClient.readContract({
+          address: CONTRACT_ADDRESSES.registry,
+          abi: BRAIN_REGISTRY_ABI,
+          functionName: 'getBuilderCount',
+        });
+        console.log("getBuilderCount() result:", builderCount.toString());
+      } catch (err) {
+        console.error("getBuilderCount() call failed:", err);
+      }
+
+      let fetchedAddresses = [];
+      try {
+        fetchedAddresses = await publicClient.readContract({
+          address: CONTRACT_ADDRESSES.registry,
+          abi: BRAIN_REGISTRY_ABI,
+          functionName: 'getRegisteredBuilders',
+        });
+        console.log("getRegisteredBuilders() result (full array):", fetchedAddresses);
+      } catch (err) {
+        console.error("getRegisteredBuilders() call failed:", err);
+      }
+
+      console.log("Hook registeredBuilders value:", registeredBuilders);
+
+      let onChainRows = [];
+      const builderAddresses = Array.isArray(fetchedAddresses) ? fetchedAddresses : [];
 
       try {
-        // Step 2: fetch each profile
         for (const addr of builderAddresses) {
           try {
             const raw = await publicClient.readContract({
@@ -217,6 +245,7 @@ export default function App() {
               functionName: 'getProfile',
               args: [addr],
             });
+            console.log(`getProfile(${addr}) result:`, raw);
 
             if (!raw || !raw.exists) continue;
 
@@ -238,7 +267,6 @@ export default function App() {
               gflops:   calcGflops > 0 ? calcGflops.toLocaleString() : '--',
               hash:     `${addr.slice(0, 6)}...${addr.slice(-4)}`,
               isOnChain: true,
-              // Mark row as the connected wallet's row (UI highlight only — never affects which rows appear)
               isUser:   !!address && addr.toLowerCase() === address.toLowerCase(),
             });
           } catch (err) {
@@ -246,17 +274,16 @@ export default function App() {
           }
         }
       } catch (rpcErr) {
-        // Entire RPC call failed — surface a user-friendly message and fall back to mocks
         console.warn('[LEADERBOARD] RPC failure, falling back to mock data:', rpcErr.message);
         addToast('⚠️ Could not reach Ritual RPC. Showing placeholder data.', 'error');
       }
 
-      // Step 3: merge — add mock rows to fill leaderboard when chain has few builders
       const allRows = [...onChainRows, ...mockRows];
-
-      // Step 4: sort by GFLOPS descending, assign ranks
       allRows.sort((a, b) => parseGflopsVal(b.gflops) - parseGflopsVal(a.gflops));
       allRows.forEach((row, idx) => { row.rank = idx + 1; });
+
+      console.log("Final leaderboard array before rendering:", allRows);
+      console.log("=========================================");
 
       setLeaderboardData(allRows);
       setLeaderboardLoading(false);
@@ -264,7 +291,7 @@ export default function App() {
 
     buildLeaderboard();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [registeredBuilders, isWrongNetwork]);
+  }, [registeredBuilders, isWrongNetwork, address]);
 
 
 
