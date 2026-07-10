@@ -1208,35 +1208,52 @@ header {
 }
 
 .form-input, .form-select, .form-textarea {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
   padding: 12px 16px;
   color: white;
   font-family: var(--font-sans);
   font-size: 0.9rem;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  width: 100%;
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
 }
 
 .form-select {
   color-scheme: dark;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
 }
 
-.form-select option {
-  background-color: #111111;
-  color: white;
+.form-select option,
+.form-select optgroup {
+  background-color: #111118;
+  color: #f3f4f6;
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   border-color: var(--purple);
-  box-shadow: 0 0 10px rgba(139, 92, 246, 0.1);
-  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12), 0 0 12px rgba(139, 92, 246, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.form-input:hover:not(:focus), .form-select:hover:not(:focus) {
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .form-textarea {
   resize: vertical;
   min-height: 100px;
+  line-height: 1.6;
 }
 
 .skills-select-grid {
@@ -1248,14 +1265,36 @@ header {
 .skill-checkbox-label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 0.85rem;
   color: var(--text-secondary);
   cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.2s ease;
+  user-select: none;
 }
 
-.skill-checkbox-label input {
+.skill-checkbox-label:hover {
+  background: rgba(139, 92, 246, 0.07);
+  border-color: rgba(139, 92, 246, 0.25);
+  color: #e5e7eb;
+}
+
+.skill-checkbox-label input[type="checkbox"] {
   accent-color: var(--purple);
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.skill-checkbox-label:has(input:checked) {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.35);
+  color: #c4b5fd;
 }
 
 /* Glass Cybernetic Card Visual */
@@ -1268,7 +1307,7 @@ header {
 
 .cyber-card {
   width: 380px;
-  height: 520px;
+  height: 580px;
   border-radius: 20px;
   background: linear-gradient(135deg, rgba(20, 20, 25, 0.7) 0%, rgba(8, 8, 10, 0.85) 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1536,6 +1575,16 @@ header {
 
 .leaderboard-table tr:hover td {
   background: rgba(255, 255, 255, 0.015);
+}
+
+.active-user-row {
+  background: rgba(139, 92, 246, 0.09) !important;
+  border-left: 3px solid var(--purple) !important;
+  box-shadow: inset 0 0 10px rgba(139, 92, 246, 0.1);
+}
+
+.active-user-row td {
+  color: #ffffff !important;
 }
 
 .rank-badge {
@@ -1851,6 +1900,13 @@ footer {
   .profile-card-wrapper {
     order: -1;
   }
+
+  .cyber-card {
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+    min-height: 520px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1860,13 +1916,14 @@ footer {
     top: var(--header-height);
     left: 0;
     width: 100%;
-    background: rgba(3, 3, 3, 0.95);
+    background: rgba(3, 3, 3, 0.97);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     flex-direction: column;
     padding: 24px;
     gap: 20px;
     border-bottom: 1px solid var(--border-glass);
+    z-index: 99;
   }
 
   .nav-links.active {
@@ -1890,4 +1947,79 @@ footer {
     gap: 20px;
     text-align: center;
   }
+
+  /* Leaderboard mobile overflow */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .leaderboard-table {
+    min-width: 600px;
+  }
+
+  .leaderboard-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box-wrapper {
+    max-width: 100%;
+  }
+
+  /* Profile form mobile */
+  .skills-select-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-form-box {
+    padding: 0 4px;
+  }
+
+  /* Hero adjustments */
+  .hero-ctas {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .hero-ctas .btn {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
 }
+
+@media (max-width: 480px) {
+  .page-section {
+    padding: 24px 0 60px 0;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+
+  .cyber-card {
+    padding: 20px;
+  }
+
+  .section-title-area h2 {
+    font-size: 1.6rem;
+  }
+
+  .glass-panel {
+    padding: 20px 16px;
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 12px 12px;
+    font-size: 0.8rem;
+  }
+
+  .dashboard-stat-card {
+    padding: 20px;
+  }
+}
+

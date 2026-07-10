@@ -429,45 +429,6 @@
         "Bytes"
       ]
     },
-    "C:\\Users\\stara\\Downloads\\ritual-cortex\\node_modules\\@openzeppelin\\contracts\\utils\\math\\Math.sol": {
-      "lastModificationDate": 1783584017034,
-      "contentHash": "5b8c6935ac52b7494df19d6feb38f5cc",
-      "sourceName": "@openzeppelin/contracts/utils/math/Math.sol",
-      "solcConfig": {
-        "version": "0.8.24",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../Panic.sol",
-        "./SafeCast.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "Math"
-      ]
-    },
     "C:\\Users\\stara\\Downloads\\ritual-cortex\\node_modules\\@openzeppelin\\contracts\\utils\\math\\SignedMath.sol": {
       "lastModificationDate": 1783584017087,
       "contentHash": "ae3528afb8bdb0a7dcfba5b115ee8074",
@@ -540,6 +501,45 @@
       ],
       "artifacts": [
         "SafeCast"
+      ]
+    },
+    "C:\\Users\\stara\\Downloads\\ritual-cortex\\node_modules\\@openzeppelin\\contracts\\utils\\math\\Math.sol": {
+      "lastModificationDate": 1783584017034,
+      "contentHash": "5b8c6935ac52b7494df19d6feb38f5cc",
+      "sourceName": "@openzeppelin/contracts/utils/math/Math.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Panic.sol",
+        "./SafeCast.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Math"
       ]
     },
     "C:\\Users\\stara\\Downloads\\ritual-cortex\\node_modules\\@openzeppelin\\contracts\\utils\\Panic.sol": {
@@ -888,42 +888,6 @@
         "Arrays"
       ]
     },
-    "C:\\Users\\stara\\Downloads\\ritual-cortex\\node_modules\\@openzeppelin\\contracts\\utils\\StorageSlot.sol": {
-      "lastModificationDate": 1783584017097,
-      "contentHash": "e656d64c4ce918f3d13030b91c935134",
-      "sourceName": "@openzeppelin/contracts/utils/StorageSlot.sol",
-      "solcConfig": {
-        "version": "0.8.24",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "StorageSlot"
-      ]
-    },
     "C:\\Users\\stara\\Downloads\\ritual-cortex\\node_modules\\@openzeppelin\\contracts\\utils\\Comparators.sol": {
       "lastModificationDate": 1783584016734,
       "contentHash": "0e57405a6f979853cbfeb0df3546c3a3",
@@ -996,10 +960,10 @@
         "SlotDerivation"
       ]
     },
-    "C:\\Users\\stara\\Downloads\\ritual-cortex\\node_modules\\@openzeppelin\\contracts\\utils\\ReentrancyGuard.sol": {
-      "lastModificationDate": 1783584017064,
-      "contentHash": "6e5efb502dd6652d12ad15eea2c5bdf4",
-      "sourceName": "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
+    "C:\\Users\\stara\\Downloads\\ritual-cortex\\node_modules\\@openzeppelin\\contracts\\utils\\StorageSlot.sol": {
+      "lastModificationDate": 1783584017097,
+      "contentHash": "e656d64c4ce918f3d13030b91c935134",
+      "sourceName": "@openzeppelin/contracts/utils/StorageSlot.sol",
       "solcConfig": {
         "version": "0.8.24",
         "settings": {
@@ -1024,55 +988,12 @@
           }
         }
       },
-      "imports": [
-        "./StorageSlot.sol"
-      ],
+      "imports": [],
       "versionPragmas": [
         "^0.8.20"
       ],
       "artifacts": [
-        "ReentrancyGuard"
-      ]
-    },
-    "C:\\Users\\stara\\Downloads\\ritual-cortex\\contracts\\BrainRegistry.sol": {
-      "lastModificationDate": 1783586272033,
-      "contentHash": "69fdfb248656893f1967bcf80b64f83e",
-      "sourceName": "contracts/BrainRegistry.sol",
-      "solcConfig": {
-        "version": "0.8.24",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/access/Ownable2Step.sol",
-        "@openzeppelin/contracts/utils/ReentrancyGuard.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.24"
-      ],
-      "artifacts": [
-        "BrainRegistry",
-        "IBrainPassNFT",
-        "IXPBadge"
+        "StorageSlot"
       ]
     },
     "C:\\Users\\stara\\Downloads\\ritual-cortex\\node_modules\\@openzeppelin\\contracts\\access\\Ownable2Step.sol": {
@@ -1111,6 +1032,126 @@
       ],
       "artifacts": [
         "Ownable2Step"
+      ]
+    },
+    "C:\\Users\\stara\\Downloads\\ritual-cortex\\contracts\\legacy\\BrainRegistry.sol": {
+      "lastModificationDate": 1783645043435,
+      "contentHash": "69fdfb248656893f1967bcf80b64f83e",
+      "sourceName": "contracts/legacy/BrainRegistry.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/Ownable2Step.sol",
+        "@openzeppelin/contracts/utils/ReentrancyGuard.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "BrainRegistry",
+        "IBrainPassNFT",
+        "IXPBadge"
+      ]
+    },
+    "C:\\Users\\stara\\Downloads\\ritual-cortex\\node_modules\\@openzeppelin\\contracts\\utils\\ReentrancyGuard.sol": {
+      "lastModificationDate": 1783584017064,
+      "contentHash": "6e5efb502dd6652d12ad15eea2c5bdf4",
+      "sourceName": "@openzeppelin/contracts/utils/ReentrancyGuard.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./StorageSlot.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ReentrancyGuard"
+      ]
+    },
+    "C:\\Users\\stara\\Downloads\\ritual-cortex\\contracts\\BrainRegistryV2.sol": {
+      "lastModificationDate": 1783592649223,
+      "contentHash": "950f5826bae2243f3bf2543640e8dbf8",
+      "sourceName": "contracts/BrainRegistryV2.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/Ownable2Step.sol",
+        "@openzeppelin/contracts/utils/ReentrancyGuard.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "BrainRegistryV2",
+        "IBrainPassNFT",
+        "IXPBadge"
       ]
     },
     "C:\\Users\\stara\\Downloads\\ritual-cortex\\contracts\\XPBadge.sol": {

@@ -17,73 +17,86 @@ const publicClient = createPublicClient({
 
 
 // Dynamic builder description generator running purely client-side
-const generateBuilderBio = (role, score, skillsObj) => {
+const generateBuilderBio = (address, role, skillsObj, score) => {
   const activeSkills = Object.keys(skillsObj || {}).filter(s => skillsObj[s]);
-  
-  const roleOpenings = {
+  const formattedSkills = activeSkills.length === 0
+    ? "core technical protocols"
+    : activeSkills.length === 1
+      ? activeSkills[0]
+      : activeSkills.slice(0, 3).join(', ');
+
+  const displayScore = score > 0 ? `${score} / 100` : "0 / 100";
+
+  const templates = {
     'Cortex Integrator': [
-      "A systems architect focused on aligning modular neural models with decentralized execution layers.",
-      "An integration specialist designing high-throughput connection protocols for AI agent groups.",
-      "A distributed system builder bridging off-chain execution nodes with consensus frameworks.",
-      "A dedicated coordinator architecting latency-critical interfaces for peer-to-peer compute."
+      `A systems engineer integrating decentralized AI models using ${formattedSkills}. Operating a verified node on the Ritual Brain network with a ${displayScore} cognitive quotient.`,
+      `Architecting seamless interfaces between intelligent smart contracts and scalable compute pools using ${formattedSkills}, achieving a ${displayScore} efficiency rating.`,
+      `Bridging decentralized execution layers with front-end neural protocols via ${formattedSkills}. Currently validating cognitive structures with a ${displayScore} sync factor.`,
+      `Deploying custom Web3-AI pipelines leveraging ${formattedSkills} on the Ritual Testnet. Node telemetry confirms a ${displayScore} validation score.`,
+      `Specializing in the orchestration of multi-agent neural grids using ${formattedSkills}. Active validation node operating at ${displayScore} throughput.`,
+      `Developing latency-critical execution pipelines and integrating models via ${formattedSkills}. Verified Brain Score of ${displayScore} ensures high-fidelity consensus.`,
+      `Optimizing distributed compute nodes and bridging local models using ${formattedSkills}. Achieving a highly aligned ${displayScore} score on-chain.`,
+      `Building trustless AI coordinator layers powered by ${formattedSkills} on the Ritual Testnet. Sync parameters verified at ${displayScore} precision.`,
+      `Connecting off-chain model outputs with on-chain consensus logic using ${formattedSkills}, maintaining a verified ${displayScore} cognitive breakdown.`,
+      `Structuring decentralized neural workflows and verifying weight distributions with ${formattedSkills}. Validated at ${displayScore} sync on the network.`,
+      `Integrating secure inference protocols and scheduling model routing via ${formattedSkills}. Telemetry scores confirm ${displayScore} cognitive alignment.`,
+      `Designing modular middleware to run distributed neural networks using ${formattedSkills}. Successfully verified on-chain at ${displayScore} efficiency.`,
+      `Unifying deep learning weights with Web3 execution protocols using ${formattedSkills}. Operating an active validator node with ${displayScore} sync.`,
+      `Implementing trustless AI endpoints and scheduling parallel execution tasks using ${formattedSkills}. Node telemetry verified at ${displayScore}.`,
+      `Fusing decentralized consensus mechanisms with neural inference layers via ${formattedSkills}, with a validated ${displayScore} brain score.`
     ],
     'Neural Architect': [
-      "A deep learning engineer optimizing model parameters and routing matrices for decentralized grids.",
-      "A neural model designer structuring modular compute nodes for local and global consensus.",
-      "An AI systems developer deploying optimized weight configurations across validation rings.",
-      "A neural protocol engineer focused on latency-optimized synaptic routing paths."
+      `Designing custom deep learning layers and decentralized neural parameters using ${formattedSkills}, with a verified ${displayScore} cognitive quotient.`,
+      `Structuring distributed training loops and weight routing topologies via ${formattedSkills}. Validated on the Ritual Brain at ${displayScore}.`,
+      `Building next-generation modular AI architectures optimized with ${formattedSkills}, achieving a ${displayScore} validation precision rating.`,
+      `Engineering neural network grids and scheduling decentralized model shards using ${formattedSkills}. On-chain brain score verified at ${displayScore}.`,
+      `Optimizing latency and parallel execution patterns for massive AI models using ${formattedSkills}, with a verified ${displayScore} sync factor.`,
+      `Developing adaptive model weights and trustless routing matrices using ${formattedSkills}. Validator sync confirmed at ${displayScore} efficiency.`,
+      `Deploying scalable neural infrastructures secured by blockchain consensus via ${formattedSkills}. Node operates at a ${displayScore} quotient.`,
+      `Formulating cryptographic weight alignments and tensor distribution layers using ${formattedSkills}, with a verified ${displayScore} score.`,
+      `Crafting secure model parameters and running decentralized inference pools via ${formattedSkills}. On-chain telemetry verified at ${displayScore}.`,
+      `Configuring active neural grids and building custom model runtimes using ${formattedSkills}. Verified at ${displayScore} precision.`,
+      `Structuring pipeline parallelisms and weight verify checks on the Ritual Testnet using ${formattedSkills}. Achieving ${displayScore} sync.`,
+      `Designing trustless model architectures and scheduling consensus-driven validation via ${formattedSkills}. Brain Score is ${displayScore}.`,
+      `Engineering high-throughput neural routing matrices and scheduling execution shards using ${formattedSkills}. Validated at ${displayScore}.`,
+      `Optimizing distributed gradient updates and scheduling parameter runs via ${formattedSkills}. Synaptic score verified at ${displayScore}.`,
+      `Forging next-generation AI pipelines and mapping model structures to blockchain networks using ${formattedSkills}. Verified at ${displayScore}.`
     ],
     'ZKP Cryptographer': [
-      "A cryptography engineer constructing Zero-Knowledge circuits to verify cognitive outputs.",
-      "A privacy architect implementing secure proofs of computation for decentralized compute pools.",
-      "A zk-SNARK specialist verifying model integrity without exposing proprietary weights.",
-      "A math-driven engineer building succinct verification shields for on-chain models."
+      `Constructing zero-knowledge circuit pipelines to verify model inference using ${formattedSkills}, achieving a verified ${displayScore} precision.`,
+      `Designing privacy-preserving cognitive proof systems and trustless zk-SNARK layers via ${formattedSkills}. Validated at ${displayScore} sync.`,
+      `Verifying neural network weight distributions without disclosing proprietary model code using ${formattedSkills}. Brain Score verified at ${displayScore}.`,
+      `Engineering succinct cryptographic proofs for decentralized AI validation networks via ${formattedSkills}, scoring ${displayScore} on-chain.`,
+      `Implementing zk-STARK verification mechanisms for secure model outputs using ${formattedSkills}, achieving a ${displayScore} network rating.`,
+      `Securing machine learning validation layers through mathematical proofs and ${formattedSkills}. Node verified at ${displayScore} efficiency.`,
+      `Writing custom zkSNARK validators and compiling privacy-centric compute proofs via ${formattedSkills}. Telemetry confirmed at ${displayScore}.`,
+      `Building trustless cryptography shields for distributed neural networks using ${formattedSkills}. On-chain brain score is ${displayScore}.`,
+      `Developing zero-knowledge proof aggregators for massive parallel model validation using ${formattedSkills}. Verified at ${displayScore} sync.`,
+      `Securing model parameters and verifying decentralized execution claims with ${formattedSkills}, operating at ${displayScore} precision.`,
+      `Creating mathematical verification layers to ensure trustless model scheduling using ${formattedSkills}. Validated at ${displayScore}.`,
+      `Compiling privacy-focused cryptographic pipelines to hide neural weights using ${formattedSkills}. Telemetry scores show ${displayScore}.`,
+      `Designing zero-knowledge execution templates to prove model accuracy via ${formattedSkills}. On-chain score verified at ${displayScore}.`,
+      `Optimizing ZK proof generation bottlenecks for low-latency AI verification using ${formattedSkills}. Sync quotient is ${displayScore}.`,
+      `Fusing cryptography with machine learning weights to ensure private, trustless inference using ${formattedSkills}. Verified at ${displayScore}.`
     ],
     'Compute Node Operator': [
-      "A high-availability operator managing compute node arrays optimized for parallel execution.",
-      "A network infrastructure engineer scheduling compute pools for decentralized AI pipelines.",
-      "A hardware specialist coordinating GPU/CPU resources within the Ritual consensus layer.",
-      "A node validator ensuring 99.9% uptime for cryptographic verification operations."
+      `Provisioning high-availability GPU cluster rigs to compute decentralized AI tasks using ${formattedSkills}. Node verified at ${displayScore} sync.`,
+      `Scheduling raw CPU/GPU hardware workloads on the Ritual Brain network via ${formattedSkills}, operating with a ${displayScore} efficiency rating.`,
+      `Optimizing neural validator pipelines and contributing compute power through ${formattedSkills}. Telemetry scores confirm ${displayScore}.`,
+      `Managing secure node validator containers and maintaining 99.9% uptime using ${formattedSkills}. On-chain brain score is ${displayScore}.`,
+      `Allocating scalable parallel execution layers for trustless model inference using ${formattedSkills}. Validated at ${displayScore} precision.`,
+      `Operating robust node clusters and validating cryptographic transactions using ${formattedSkills}, with a validated ${displayScore} brain score.`,
+      `Running low-latency compute endpoints and scaling hardware capabilities using ${formattedSkills}. Node sync verified at ${displayScore}.`,
+      `Deploying custom hardware parameters to secure decentralized machine learning pipelines using ${formattedSkills}, scoring ${displayScore} on-chain.`,
+      `Coordinating execution tasks and securing network consensus using ${formattedSkills}. Active validator node operating at ${displayScore}.`,
+      `Scaling distributed physical hardware infrastructure and scheduling model executions with ${formattedSkills}. Verified at ${displayScore} sync.`,
+      `Managing GPU compute virtualization and provisioning validation rings via ${formattedSkills}. Telemetry verified at ${displayScore}.`,
+      `Securing high-throughput hardware pipelines for modular model runs using ${formattedSkills}. On-chain rating verified at ${displayScore}.`,
+      `Configuring dedicated validator instances and ensuring tamper-proof model execution using ${formattedSkills}. Sync confirmed at ${displayScore}.`,
+      `Running physical hardware clusters for decentralized model scheduling via ${formattedSkills}. Synaptic score verified at ${displayScore}.`,
+      `Optimizing telemetry metrics and scheduling model parallelisms on bare-metal rigs using ${formattedSkills}. Verified at ${displayScore}.`
     ]
   };
-
-  let scoreClauses = [];
-  if (score >= 90) {
-    scoreClauses = [
-      `Operating at an elite cognitive quotient of ${score}%, they demonstrate top-tier validation efficiency.`,
-      `With a stellar synaptic score of ${score}%, their node achieves maximum alignment accuracy.`,
-      `Displaying an advanced neural sync of ${score}%, they lead the consensus ranking in cognitive throughput.`
-    ];
-  } else if (score >= 75) {
-    scoreClauses = [
-      `Maintaining a highly efficient sync metric of ${score}%, their node contributes stable computational power.`,
-      `Demonstrating a strong cognitive breakdown of ${score}%, they consistently align with validator standards.`,
-      `With an active brain score of ${score}%, they ensure reliable validation proofs across active nodes.`
-    ];
-  } else {
-    scoreClauses = [
-      `Registering a baseline cognitive metric of ${score}%, they are currently calibrating node performance.`,
-      `Operating with a synaptic alignment of ${score}%, they focus on building core operational stability.`,
-      `With a baseline brain score of ${score}%, their node is actively syncing telemetry parameters.`
-    ];
-  }
-
-  let skillPart = "";
-  if (activeSkills.length === 0) {
-    skillPart = "They are currently expanding their technical toolkits to optimize node pipelines.";
-  } else if (activeSkills.length === 1) {
-    skillPart = `Their current technical stack is anchored heavily by expertise in ${activeSkills[0]}.`;
-  } else {
-    const list = activeSkills.slice(0, -1).join(', ') + ' and ' + activeSkills[activeSkills.length - 1];
-    skillPart = `They leverage advanced technical expertise in ${list} to execute complex computing tasks.`;
-  }
-
-  const closings = [
-    "Actively securing the decentralized AI horizon on the Ritual Testnet.",
-    "Driven to build open-source, trustless neural protocols for modular web3 applications.",
-    "Committed to scaling decentralized execution pools for the next generation of builders.",
-    "Optimizing telemetry nodes to ensure immutable cognitive proof structures."
-  ];
 
   const hash = (str) => {
     let h = 0;
@@ -94,15 +107,12 @@ const generateBuilderBio = (role, score, skillsObj) => {
     return Math.abs(h);
   };
 
-  const seedStr = `${role}-${score}-${activeSkills.join('-')}`;
-  const seed = hash(seedStr);
+  const cleanAddress = (address || '').toLowerCase();
+  const seed = hash(cleanAddress);
+  const pool = templates[role] || templates['Cortex Integrator'];
+  const template = pool[seed % pool.length];
 
-  const openings = roleOpenings[role] || roleOpenings['Cortex Integrator'];
-  const opening = openings[seed % openings.length];
-  const scoreClause = scoreClauses[seed % scoreClauses.length];
-  const closing = closings[seed % closings.length];
-
-  return `${opening} ${scoreClause} ${skillPart} ${closing}`;
+  return template;
 };
 
 
@@ -1158,7 +1168,7 @@ export default function App() {
               <input 
                 type="text" 
                 className="form-input" 
-                placeholder="e.g. SatoshiCortex" 
+                placeholder="e.g. SatoshiBrain" 
                 value={newProfileName}
                 onChange={(e) => setNewProfileName(e.target.value)}
               />
@@ -1220,7 +1230,7 @@ export default function App() {
   const liveXP         = profile?.xp          ?? 0;   // already a plain number from useProfile
   const liveLevel      = profile?.level        ?? 1;
   const liveBrainScore = profile?.brainScore   ?? 0;
-  const generatedBio = generateBuilderBio(profileForm.role, liveBrainScore, profileForm.skills);
+  const generatedBio = generateBuilderBio(address || '0x0000000000000000000000000000000000000000', profileForm.role, profileForm.skills, liveBrainScore);
 
   const _joinTs = profile?.joinTimestamp ?? 0;  // already seconds as a plain number
   const liveJoinDate = _joinTs > 0
@@ -1634,7 +1644,7 @@ export default function App() {
                   </div>
                 </div>
                 <button className="btn btn-primary btn-glow" onClick={handleStartScan} disabled={scanState.inProgress} style={{ width: '100%' }}>
-                  {scanState.inProgress ? 'Mapping Neural Cortex...' : 'Initialize Cognitive Mapping'}
+                  {scanState.inProgress ? 'Mapping Neural Structure...' : 'Initialize Cognitive Mapping'}
                 </button>
               </div>
 
@@ -1761,7 +1771,7 @@ export default function App() {
         {/* 4. AI MENTOR */}
         <section id="mentor" className={`page-section ${activePage === 'mentor' ? 'active show' : ''}`}>
           <div className="section-title-area">
-            <h2>Cortex AI Mentorship</h2>
+            <h2>Ritual Brain AI Mentorship</h2>
             <p>Consult with customized AI models optimized for code compilation, security assessment, and general engineering strategy.</p>
           </div>
 
@@ -1862,7 +1872,7 @@ export default function App() {
                       className="chat-input" 
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="Query cortex network parameters, code optimizations..." 
+                      placeholder="Query brain network parameters, code optimizations..." 
                       autoComplete="off"
                     />
                     <button type="submit" className="chat-submit" disabled={botTyping}>
@@ -1963,6 +1973,17 @@ export default function App() {
                     onChange={(e) => handleProfileFormChange('metadataURI', e.target.value)}
                     placeholder="https://api.ritualbrain.net/profiles/user.json"
                   />
+                  <div style={{ marginTop: '6px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {profileForm.metadataURI ? (
+                      profileForm.metadataURI.startsWith('ipfs://') ? (
+                        <span style={{ color: '#10b981', fontWeight: 600 }}>🟢 IPFS Metadata Active</span>
+                      ) : (
+                        <span style={{ color: '#10b981', fontWeight: 600 }}>🟢 Metadata Stored</span>
+                      )
+                    ) : (
+                      <span style={{ color: 'var(--text-secondary)' }}>⚪ No metadata deployed</span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="form-group">
@@ -2034,14 +2055,15 @@ export default function App() {
                 <div className="cyber-card" ref={cardRef}>
                   <div className="cyber-card-header">
                     <div className="card-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <img src="/logo.png" alt="Ritual Identity Logo" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
-                      <span>Ritual Identity</span>
+                      <img src="/logo.png" alt="Ritual Identity Logo" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+                      <span style={{ fontSize: '0.8rem', letterSpacing: '1px' }}>Ritual Identity</span>
                     </div>
                     <div className="card-chip"></div>
                   </div>
 
-                  <div className="cyber-card-body">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                  <div className="cyber-card-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
+                    {/* 1. Avatar */}
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4px' }}>
                       <div className="card-avatar">
                         {profileForm.avatar ? (
                           <img src={profileForm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
@@ -2049,52 +2071,67 @@ export default function App() {
                           profileInitials || '??'
                         )}
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span className="card-name" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', textShadow: '0 0 10px rgba(255,255,255,0.1)' }}>{profileForm.name || 'Anonymous Developer'}</span>
-                          {profileForm.xUsername && (
-                            <span style={{ fontSize: '0.8rem', color: '#c084fc', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
-                              </svg>
-                              @{profileForm.xUsername}
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <span className="card-role" style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                            {profileForm.role}
-                          </span>
-                        </div>
-                      </div>
                     </div>
-                    
-                    <p className="card-bio" style={{ margin: '8px 0 0', minHeight: '90px' }}>{generatedBio}</p>
-                    
-                    <div className="card-skills">
+
+                    {/* 2. Builder Name & 3. @Username */}
+                    <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span className="card-name" style={{ fontSize: '1.4rem', fontWeight: 800 }}>{profileForm.name || 'Anonymous Builder'}</span>
+                      {profileForm.xUsername && (
+                        <span style={{ fontSize: '0.82rem', color: '#c084fc', fontFamily: 'monospace' }}>
+                          @{profileForm.xUsername}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* 4. Specialization */}
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2px' }}>
+                      <span className="card-role" style={{ 
+                        fontSize: '0.7rem', 
+                        background: 'rgba(139, 92, 246, 0.1)', 
+                        border: '1px solid rgba(139, 92, 246, 0.3)', 
+                        padding: '3px 8px', 
+                        borderRadius: '6px', 
+                        color: '#c084fc',
+                        textTransform: 'uppercase',
+                        letterSpacing: '1.5px',
+                        fontWeight: '700'
+                      }}>
+                        {profileForm.role}
+                      </span>
+                    </div>
+
+                    {/* 5. Builder Description */}
+                    <p className="card-bio" style={{ textAlign: 'center', margin: '4px 0', minHeight: '80px', fontSize: '0.8rem', lineHeight: '1.4', color: 'var(--text-secondary)' }}>
+                      {generatedBio}
+                    </p>
+
+                    {/* 6. Skills */}
+                    <div className="card-skills" style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '6px' }}>
                       {Object.keys(profileForm.skills).filter(s => profileForm.skills[s]).map(s => (
-                        <span key={s} className="card-skill-badge">{s}</span>
+                        <span key={s} className="card-skill-badge" style={{ padding: '2px 8px', fontSize: '0.65rem' }}>{s}</span>
                       ))}
                     </div>
                   </div>
 
-                  <div className="cyber-card-footer">
-                    <div className="card-stats-preview">
-                      <div className="card-stat">
-                        <span className="card-stat-label">Level / XP</span>
-                        <span className="cyber-accent" style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                          Lvl {liveLevel} ({liveXP} XP)
-                        </span>
+                  <div className="cyber-card-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px', marginTop: '10px' }}>
+                    <div className="card-stats-preview" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', width: '100%' }}>
+                      <div className="card-stat" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <span className="card-stat-label" style={{ fontSize: '0.6rem', textTransform: 'uppercase', opacity: 0.5 }}>Level</span>
+                        <span className="cyber-accent" style={{ fontWeight: 700, fontSize: '0.8rem' }}>Lvl {liveLevel}</span>
                       </div>
-                      <div className="card-stat">
-                        <span className="card-stat-label">Sync Quotient</span>
-                        <span className="card-stat-val">
-                          {liveBrainScore > 0 ? `${liveBrainScore}%` : 'Baseline'}
+                      <div className="card-stat" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <span className="card-stat-label" style={{ fontSize: '0.6rem', textTransform: 'uppercase', opacity: 0.5 }}>XP</span>
+                        <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#60a5fa' }}>{liveXP} XP</span>
+                      </div>
+                      <div className="card-stat" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <span className="card-stat-label" style={{ fontSize: '0.6rem', textTransform: 'uppercase', opacity: 0.5 }}>Brain Pass</span>
+                        <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#10b981' }}>
+                          {livePassId ? `#${livePassId.toString()}` : 'None'}
                         </span>
                       </div>
                     </div>
-                    <div className="card-hash" title={`Pass NFT ID: ${livePassId ? livePassId.toString() : 'None'}`}>
-                      {livePassId ? `Pass #${livePassId.toString()}` : shortAddress}
+                    <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', borderTop: '1px dashed rgba(255,255,255,0.04)', paddingTop: '6px' }}>
+                      {address ? `${address.slice(0, 10)}...${address.slice(-8)}` : 'Disconnected'}
                     </div>
                   </div>
                 </div>
@@ -2114,7 +2151,7 @@ export default function App() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: liveBadge2 > 0n ? 1 : 0.25 }}>
                       <span style={{ fontSize: '1.2rem' }}>⚡</span>
                       <div>
-                        <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600, color: '#fff' }}>Cortex Builder</p>
+                        <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600, color: '#fff' }}>Brain Builder</p>
                         <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Milestone: Reach 5,000 XP</p>
                       </div>
                       {liveBadge2 > 0n && <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>x{liveBadge2.toString()}</span>}
@@ -2193,7 +2230,7 @@ export default function App() {
                   else if (row.rank === 3) badgeClass = 'rank-badge rank-3';
 
                   return (
-                    <tr key={idx} style={row.isUser ? { background: 'rgba(139, 92, 246, 0.08)', outline: '1px solid rgba(139,92,246,0.2)' } : undefined}>
+                    <tr key={idx} className={row.isUser ? 'active-user-row' : ''}>
                       <td><span className={badgeClass}>{row.rank}</span></td>
                       <td>
                         <div className="leaderboard-builder-cell">
@@ -2366,7 +2403,7 @@ export default function App() {
                 <img src="/logo.png" alt="Ritual Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
               <span style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'monospace', letterSpacing: '2px', color: '#c084fc', textShadow: '0 0 10px rgba(192, 132, 252, 0.3)' }}>
-                RITUAL CORTEX
+                RITUAL BRAIN
               </span>
             </div>
             <div style={{

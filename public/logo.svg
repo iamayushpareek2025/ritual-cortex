@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Glowing backdrop circle -->
+  <circle cx="50" cy="50" r="40" fill="url(#logoGlow)" opacity="0.2" filter="blur(8px)" />
+  <!-- Outer hexagonal/circular tech ring -->
+  <circle cx="50" cy="50" r="42" stroke="url(#ringGradient)" strokeWidth="3" strokeDasharray="6 4" opacity="0.8" />
+  <!-- Inner rings -->
+  <circle cx="50" cy="50" r="32" stroke="url(#ringGradient)" strokeWidth="1.5" opacity="0.4" />
+  
+  <!-- Isometric Glassmorphic Planes (Identity Concept) -->
+  <!-- Bottom Plane (Purple Glowing Core) -->
+  <path d="M50 35 L75 48 L50 61 L25 48 Z" fill="url(#bottomPlaneGradient)" filter="drop-shadow(0 4px 12px rgba(139, 92, 246, 0.6))" />
+  <!-- Connection Lines between planes -->
+  <line x1="50" y1="35" x2="50" y2="20" stroke="#a78bfa" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
+  <line x1="75" y1="48" x2="75" y2="33" stroke="#60a5fa" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
+  <line x1="25" y1="48" x2="25" y2="33" stroke="#60a5fa" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
+  <line x1="50" y1="61" x2="50" y2="46" stroke="#c084fc" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
+
+  <!-- Top Plane (White/Semi-transparent Glossy Plate) -->
+  <path d="M50 20 L75 33 L50 46 L25 33 Z" fill="url(#topPlaneGradient)" stroke="rgba(255, 255, 255, 0.5)" strokeWidth="1.5" />
+  
+  <!-- Central Neural Core node -->
+  <circle cx="50" cy="33" r="4" fill="#ffffff" filter="drop-shadow(0 0 8px #ffffff)" />
+  
+  <defs>
+    <radialGradient id="logoGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#8b5cf6" />
+      <stop offset="100%" stopColor="transparent" />
+    </radialGradient>
+    <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#8b5cf6" />
+      <stop offset="50%" stopColor="#3b82f6" />
+      <stop offset="100%" stopColor="#ec4899" />
+    </linearGradient>
+    <linearGradient id="bottomPlaneGradient" x1="25" y1="35" x2="75" y2="61">
+      <stop offset="0%" stopColor="#7c3aed" />
+      <stop offset="100%" stopColor="#2563eb" />
+    </linearGradient>
+    <linearGradient id="topPlaneGradient" x1="25" y1="20" x2="75" y2="46">
+      <stop offset="0%" stopColor="rgba(255, 255, 255, 0.25)" />
+      <stop offset="100%" stopColor="rgba(255, 255, 255, 0.05)" />
+    </linearGradient>
+  </defs>
+</svg>
