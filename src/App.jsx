@@ -434,9 +434,28 @@ export default function App() {
   // --- Wallet Connection Wrapper ---
   const handleConnectWallet = async (providerId) => {
     try {
-      await connect(providerId);
+      const result = await connect(providerId);
       setWalletModalOpen(false);
-      addToast('Wallet connected!', 'success');
+
+      // Auto-switch to Ritual Testnet after connecting.
+      // result.chainId is the chain the wallet is currently on.
+      const connectedChainId = result?.chainId;
+      if (connectedChainId && connectedChainId !== 1979) {
+        addToast('Switching to Ritual Testnet...', 'info');
+        try {
+          await switchChain(); // defined in useNetwork — calls switchChainAsync({ chainId: 1979 })
+          addToast('Connected to Ritual Testnet! 🎉', 'success');
+        } catch (switchErr) {
+          const switchMsg = (switchErr?.message ?? '').toLowerCase();
+          if (switchMsg.includes('user rejected') || switchErr?.code === 4001) {
+            addToast('Please switch to Ritual Testnet manually to continue.', 'error');
+          } else {
+            addToast('Network switch failed. Please switch to Ritual Testnet in your wallet.', 'error');
+          }
+        }
+      } else {
+        addToast('Wallet connected!', 'success');
+      }
     } catch (err) {
       console.error('Wallet connection failed:', err);
 
@@ -464,6 +483,7 @@ export default function App() {
       setWalletModalOpen(false);
     }
   };
+
 
   const shortAddress = address 
     ? `${address.slice(0, 6)}...${address.slice(-4)}`

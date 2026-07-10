@@ -8,12 +8,9 @@ export function useNetwork() {
   const isWrongNetwork = chain ? chain.id !== 1979 : false;
 
   const handleSwitchToRitual = async () => {
+    // Let errors bubble up — callers handle user-rejected / failed switch themselves.
     if (switchChainAsync) {
-      try {
-        await switchChainAsync({ chainId: 1979 });
-      } catch (err) {
-        console.error('Failed to switch chain to Ritual Testnet:', err);
-      }
+      return await switchChainAsync({ chainId: 1979 });
     } else if (switchChain) {
       switchChain({ chainId: 1979 });
     }
