@@ -2365,7 +2365,22 @@ export default function App() {
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Coinbase</span>
                 </div>
 
+                {/* WalletConnect — mobile wallets via QR code (Trust, Rainbow, etc.) */}
+                <div className="wallet-option" onClick={() => handleConnectWallet('walletconnect')}>
+                  <div className="wallet-option-left">
+                    <div className="wallet-option-logo">
+                      <svg viewBox="0 0 300 185" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="300" height="185" rx="40" fill="#3B99FC"/>
+                        <path d="M61.4 66.7c48.9-47.9 128.3-47.9 177.2 0l5.9 5.8c2.4 2.4 2.4 6.2 0 8.6l-20.2 19.8c-1.2 1.2-3.1 1.2-4.3 0l-8.1-7.9c-34.1-33.4-89.4-33.4-123.5 0l-8.7 8.5c-1.2 1.2-3.1 1.2-4.3 0L54.2 81.7c-2.4-2.4-2.4-6.2 0-8.6l7.2-6.4zm218.7 40.8l18 17.6c2.4 2.4 2.4 6.2 0 8.6l-81.2 79.5c-2.4 2.4-6.2 2.4-8.6 0l-57.6-56.4c-.6-.6-1.5-.6-2.1 0l-57.6 56.4c-2.4 2.4-6.2 2.4-8.6 0L0 133.7c-2.4-2.4-2.4-6.2 0-8.6l18-17.6c2.4-2.4 6.2-2.4 8.6 0l57.6 56.4c.6.6 1.5.6 2.1 0l57.6-56.4c2.4-2.4 6.2-2.4 8.6 0l57.6 56.4c.6.6 1.5.6 2.1 0l57.6-56.4c2.4-2.5 6.2-2.5 8.6-.1z" fill="white"/>
+                      </svg>
+                    </div>
+                    <span className="wallet-option-name">WalletConnect</span>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mobile / QR</span>
+                </div>
+
               </div>
+
             </div>
           ) : (
             <div className="wallet-connecting-flow active">
