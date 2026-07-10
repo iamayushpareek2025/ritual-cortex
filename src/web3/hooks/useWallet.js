@@ -35,22 +35,24 @@ export function useWallet() {
     let connector;
     if (providerId === 'metamask') {
       connector = connectors.find(c => c.id === 'metaMaskSDK' || c.id === 'metaMask' || c.id === 'injected');
+      if (!connector) throw new Error('MetaMask extension not found. Please install it.');
     } else if (providerId === 'coinbase') {
       connector = connectors.find(c => c.id === 'coinbaseWalletSDK' || c.id === 'coinbaseWallet');
+      if (!connector) throw new Error('Coinbase Wallet connector not available.');
     } else if (providerId === 'walletconnect') {
-      connector = connectors.find(c => c.id === 'walletConnect' || c.id === 'walletConnectSDK' || c.id === 'injected');
+      // Strict lookup — do NOT fall back to injected/MetaMask.
+      // If WalletConnect connector is missing, the project ID is likely not set or
+      // the dev server needs a restart after adding VITE_WALLETCONNECT_PROJECT_ID.
+      connector = connectors.find(c => c.id === 'walletConnect' || c.id === 'walletConnectSDK');
+      if (!connector) {
+        throw new Error('WalletConnect is not configured. Ensure VITE_WALLETCONNECT_PROJECT_ID is set and restart the dev server.');
+      }
     } else {
       connector = connectors.find(c => c.id === providerId) || connectors[0];
+      if (!connector) throw new Error('No connector found');
     }
 
-    if (!connector) {
-      connector = connectors[0];
-    }
-
-    if (connector) {
-      return await connectAsync({ connector });
-    }
-    throw new Error('No connector found');
+    return await connectAsync({ connector });
   };
 
   return {
