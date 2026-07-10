@@ -1105,9 +1105,22 @@ export default function App() {
   // Loader while profile is fetching from chain
   if (isConnected && !isWrongNetwork && profileLoading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#03000a' }}>
-        <div className="connecting-spinner" style={{ marginBottom: '16px' }}></div>
-        <span style={{ fontFamily: 'var(--font-tech)', color: 'var(--text-secondary)', letterSpacing: '1px' }}>Synchronizing Neural Core State...</span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#03000a', gap: '20px' }}>
+        <img 
+          src="/logo.png" 
+          alt="Ritual Brain Logo" 
+          style={{ 
+            width: '80px', 
+            height: '80px', 
+            objectFit: 'contain', 
+            filter: 'drop-shadow(0 0 15px rgba(139, 92, 246, 0.5))',
+            animation: 'pulse 2s ease-in-out infinite alternate' 
+          }} 
+        />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+          <div className="connecting-spinner"></div>
+          <span style={{ fontFamily: 'var(--font-tech)', color: 'var(--text-secondary)', letterSpacing: '1px', fontSize: '0.85rem' }}>Synchronizing Neural Core State...</span>
+        </div>
       </div>
     );
   }
@@ -1149,26 +1162,8 @@ export default function App() {
       {/* Header Navigation */}
       <header>
         <div className="container nav-wrapper">
-          <a href="#" className="logo" onClick={(e) => { e.preventDefault(); handlePageChange('landing'); }}>
-            {/* Ritual Brain — custom geometric logo inspired by Ritual network's node mesh */}
-            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Outer ring */}
-              <circle cx="16" cy="16" r="14" stroke="url(#rg)" strokeWidth="1.5" />
-              {/* Inner R letterform */}
-              <path d="M10 8h7a4 4 0 0 1 0 8h-7V8Z" stroke="#8b5cf6" strokeWidth="1.8" strokeLinejoin="round" fill="none" />
-              <path d="M17 16l5 8" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round" />
-              <path d="M10 16h5" stroke="#8b5cf6" strokeWidth="1.8" strokeLinecap="round" />
-              {/* Glow dots */}
-              <circle cx="10" cy="8" r="1.5" fill="#8b5cf6" />
-              <circle cx="10" cy="24" r="1.5" fill="#3b82f6" />
-              <circle cx="22" cy="24" r="1.5" fill="#ec4899" />
-              <defs>
-                <linearGradient id="rg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#8b5cf6" />
-                  <stop offset="1" stopColor="#3b82f6" />
-                </linearGradient>
-              </defs>
-            </svg>
+          <a href="#" className="logo" onClick={(e) => { e.preventDefault(); handlePageChange('landing'); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src="/logo.png" alt="Ritual Brain Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
             <span>Ritual Brain</span>
           </a>
 
@@ -1260,6 +1255,22 @@ export default function App() {
             
             <div className="hero-visual">
               <div className="hero-brain-globe">
+                <img 
+                  src="/logo.png" 
+                  alt="Ritual Brain Hero Logo" 
+                  style={{ 
+                    position: 'absolute', 
+                    top: '50%', 
+                    left: '50%', 
+                    transform: 'translate(-50%, -50%)', 
+                    width: '160px', 
+                    height: '160px', 
+                    objectFit: 'contain',
+                    filter: 'drop-shadow(0 0 25px rgba(139, 92, 246, 0.6))',
+                    animation: 'pulse 4s ease-in-out infinite alternate',
+                    zIndex: 2 
+                  }} 
+                />
                 <div className="brain-core"></div>
                 <div className="brain-ring"></div>
                 <div className="brain-ring-inner"></div>
@@ -1938,12 +1949,8 @@ export default function App() {
               <div className="profile-card-wrapper">
                 <div className="cyber-card" ref={cardRef}>
                   <div className="cyber-card-header">
-                    <div className="card-logo">
-                      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="2" />
-                        <circle cx="16" cy="16" r="8" stroke="currentColor" strokeDasharray="3 3" />
-                        <circle cx="16" cy="16" r="3" fill="currentColor" />
-                      </svg>
+                    <div className="card-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <img src="/logo.png" alt="Ritual Identity Logo" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
                       <span>Ritual Identity</span>
                     </div>
                     <div className="card-chip"></div>
@@ -2251,19 +2258,18 @@ export default function App() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 2 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
-                padding: '10px',
-                borderRadius: '10px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                padding: '6px',
+                borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)',
+                width: '40px',
+                height: '40px',
+                boxSizing: 'border-box'
               }}>
-                <svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="#fff" strokeWidth="2.5">
-                  <circle cx="16" cy="16" r="14" />
-                  <circle cx="16" cy="16" r="8" strokeDasharray="3 3" />
-                  <circle cx="16" cy="16" r="3" fill="#fff" />
-                </svg>
+                <img src="/logo.png" alt="Ritual Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
               <span style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'monospace', letterSpacing: '2px', color: '#c084fc', textShadow: '0 0 10px rgba(192, 132, 252, 0.3)' }}>
                 RITUAL CORTEX
@@ -2522,11 +2528,8 @@ export default function App() {
       {/* Footer Section */}
       <footer>
         <div className="container footer-wrapper">
-          <div className="footer-logo">
-            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="16" cy="16" r="10" stroke="currentColor" strokeWidth="1.5" />
-              <circle cx="16" cy="16" r="4" fill="currentColor" />
-            </svg>
+          <div className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src="/logo.png" alt="Ritual Brain Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
             <span>Ritual Brain © 2026</span>
             <span style={{ margin: '0 8px', opacity: 0.3 }}>|</span>
             <span style={{ 
