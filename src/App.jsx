@@ -439,7 +439,28 @@ export default function App() {
       addToast('Wallet connected!', 'success');
     } catch (err) {
       console.error('Wallet connection failed:', err);
-      addToast('Connection failed: Ensure extension is unlocked.', 'error');
+
+      // Surface a specific, actionable message instead of a generic fallback.
+      const code    = err?.code;
+      const message = (err?.message ?? '').toLowerCase();
+
+      let userMessage;
+      if (code === 4001 || message.includes('user rejected') || message.includes('user denied')) {
+        // User explicitly cancelled — no need to alarm them.
+        userMessage = 'Connection cancelled.';
+      } else if (code === -32002 || message.includes('already processing') || message.includes('pending')) {
+        userMessage = 'A connection request is already pending — check your wallet popup.';
+      } else if (message.includes('no provider') || message.includes('not found') || message.includes('not installed')) {
+        userMessage = 'Wallet extension not detected. Please install MetaMask or another Web3 wallet.';
+      } else if (message.includes('chain') || message.includes('network') || message.includes('unsupported')) {
+        userMessage = 'Unsupported network. Please switch to the Ritual Testnet in your wallet.';
+      } else if (message.includes('locked') || message.includes('unlock')) {
+        userMessage = 'Connection failed: Ensure your wallet extension is unlocked.';
+      } else {
+        userMessage = `Connection failed: ${err?.shortMessage ?? err?.message ?? 'Unknown error'}`;
+      }
+
+      addToast(userMessage, 'error');
       setWalletModalOpen(false);
     }
   };
