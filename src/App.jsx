@@ -240,7 +240,7 @@ export default function App() {
     { time: new Date().toLocaleTimeString([], { hour12: false }), message: 'Console active. Ready for neural architecture diagnostics.', type: 'system' },
     { time: new Date().toLocaleTimeString([], { hour12: false }), message: 'Awaiting wallet confirmation for signature matching...', type: 'system' }
   ]);
-  const consoleBottomRef = useRef(null);
+  const consoleOutputRef = useRef(null);
 
   // --- AI Mentor Chat States ---
   const [activeMentor, setActiveMentor] = useState('synthesizer');
@@ -257,7 +257,7 @@ export default function App() {
   });
   const [chatInput, setChatInput] = useState('');
   const [botTyping, setBotTyping] = useState(false);
-  const chatBottomRef = useRef(null);
+  const chatMessagesRef = useRef(null);
 
   // --- Builder Profile Card States ---
   // Initialized with empty/default values; hydrated from on-chain profile by useEffect.
@@ -816,8 +816,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (consoleBottomRef.current) {
-      consoleBottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (consoleOutputRef.current) {
+      consoleOutputRef.current.scrollTop = consoleOutputRef.current.scrollHeight;
     }
   }, [scanLogs]);
 
@@ -928,8 +928,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (chatBottomRef.current) {
-      chatBottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
     }
   }, [chatMessages, botTyping]);
 
@@ -1651,13 +1651,12 @@ export default function App() {
               <div className="scan-console">
                 <div className="glass-panel" style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <h3 style={{ fontFamily: 'var(--font-tech)', marginBottom: '12px' }}>Extraction Feed</h3>
-                  <div className="console-output">
+                  <div className="console-output" ref={consoleOutputRef}>
                     {scanLogs.map((log, i) => (
                       <span key={i} className={log.type}>
                         [{log.time}] {log.message}
                       </span>
                     ))}
-                    <div ref={consoleBottomRef}></div>
                   </div>
                 </div>
 
@@ -1851,7 +1850,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="chat-messages">
+                <div className="chat-messages" ref={chatMessagesRef}>
                   {chatMessages[activeMentor].map((msg, i) => (
                     <div key={i} className={`chat-bubble ${msg.sender}`}>
                       {msg.text}
@@ -1862,7 +1861,6 @@ export default function App() {
                     <span></span>
                     <span></span>
                   </div>
-                  <div ref={chatBottomRef}></div>
                 </div>
 
                 <div className="chat-input-area">
