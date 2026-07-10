@@ -1329,7 +1329,7 @@ header {
 }
 
 .cyber-card-body {
-  margin-top: 30px;
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1338,48 +1338,62 @@ header {
 }
 
 .card-avatar {
-  width: 64px;
-  height: 64px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
   background: radial-gradient(circle, var(--purple) 0%, var(--blue) 100%);
-  border: 2px solid rgba(255,255,255,0.15);
+  border: 2.5px solid rgba(255, 255, 255, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-tech);
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
   color: #fff;
-  margin-bottom: 8px;
-  box-shadow: 0 0 15px var(--purple-glow);
+  margin-bottom: 6px;
+  box-shadow: 0 0 25px rgba(139, 92, 246, 0.5);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.card-avatar:hover {
+  transform: scale(1.05);
+}
+
+.card-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .card-name {
   font-family: var(--font-tech);
-  font-size: 1.35rem;
-  font-weight: 700;
+  font-size: 1.4rem;
+  font-weight: 800;
   color: #fff;
+  letter-spacing: 0.5px;
 }
 
 .card-role {
   font-family: var(--font-tech);
-  font-size: 0.8rem;
-  color: var(--purple);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: -8px;
+  letter-spacing: 0.08em;
 }
 
 .card-bio {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
-  line-height: 1.4;
-  height: 60px;
+  line-height: 1.5;
+  height: 90px;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
+  font-family: inherit;
+  letter-spacing: 0.2px;
 }
 
 .card-skills {

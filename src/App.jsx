@@ -16,6 +16,96 @@ const publicClient = createPublicClient({
 });
 
 
+// Dynamic builder description generator running purely client-side
+const generateBuilderBio = (role, score, skillsObj) => {
+  const activeSkills = Object.keys(skillsObj || {}).filter(s => skillsObj[s]);
+  
+  const roleOpenings = {
+    'Cortex Integrator': [
+      "A systems architect focused on aligning modular neural models with decentralized execution layers.",
+      "An integration specialist designing high-throughput connection protocols for AI agent groups.",
+      "A distributed system builder bridging off-chain execution nodes with consensus frameworks.",
+      "A dedicated coordinator architecting latency-critical interfaces for peer-to-peer compute."
+    ],
+    'Neural Architect': [
+      "A deep learning engineer optimizing model parameters and routing matrices for decentralized grids.",
+      "A neural model designer structuring modular compute nodes for local and global consensus.",
+      "An AI systems developer deploying optimized weight configurations across validation rings.",
+      "A neural protocol engineer focused on latency-optimized synaptic routing paths."
+    ],
+    'ZKP Cryptographer': [
+      "A cryptography engineer constructing Zero-Knowledge circuits to verify cognitive outputs.",
+      "A privacy architect implementing secure proofs of computation for decentralized compute pools.",
+      "A zk-SNARK specialist verifying model integrity without exposing proprietary weights.",
+      "A math-driven engineer building succinct verification shields for on-chain models."
+    ],
+    'Compute Node Operator': [
+      "A high-availability operator managing compute node arrays optimized for parallel execution.",
+      "A network infrastructure engineer scheduling compute pools for decentralized AI pipelines.",
+      "A hardware specialist coordinating GPU/CPU resources within the Ritual consensus layer.",
+      "A node validator ensuring 99.9% uptime for cryptographic verification operations."
+    ]
+  };
+
+  let scoreClauses = [];
+  if (score >= 90) {
+    scoreClauses = [
+      `Operating at an elite cognitive quotient of ${score}%, they demonstrate top-tier validation efficiency.`,
+      `With a stellar synaptic score of ${score}%, their node achieves maximum alignment accuracy.`,
+      `Displaying an advanced neural sync of ${score}%, they lead the consensus ranking in cognitive throughput.`
+    ];
+  } else if (score >= 75) {
+    scoreClauses = [
+      `Maintaining a highly efficient sync metric of ${score}%, their node contributes stable computational power.`,
+      `Demonstrating a strong cognitive breakdown of ${score}%, they consistently align with validator standards.`,
+      `With an active brain score of ${score}%, they ensure reliable validation proofs across active nodes.`
+    ];
+  } else {
+    scoreClauses = [
+      `Registering a baseline cognitive metric of ${score}%, they are currently calibrating node performance.`,
+      `Operating with a synaptic alignment of ${score}%, they focus on building core operational stability.`,
+      `With a baseline brain score of ${score}%, their node is actively syncing telemetry parameters.`
+    ];
+  }
+
+  let skillPart = "";
+  if (activeSkills.length === 0) {
+    skillPart = "They are currently expanding their technical toolkits to optimize node pipelines.";
+  } else if (activeSkills.length === 1) {
+    skillPart = `Their current technical stack is anchored heavily by expertise in ${activeSkills[0]}.`;
+  } else {
+    const list = activeSkills.slice(0, -1).join(', ') + ' and ' + activeSkills[activeSkills.length - 1];
+    skillPart = `They leverage advanced technical expertise in ${list} to execute complex computing tasks.`;
+  }
+
+  const closings = [
+    "Actively securing the decentralized AI horizon on the Ritual Testnet.",
+    "Driven to build open-source, trustless neural protocols for modular web3 applications.",
+    "Committed to scaling decentralized execution pools for the next generation of builders.",
+    "Optimizing telemetry nodes to ensure immutable cognitive proof structures."
+  ];
+
+  const hash = (str) => {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+      h = (h << 5) - h + str.charCodeAt(i);
+      h |= 0;
+    }
+    return Math.abs(h);
+  };
+
+  const seedStr = `${role}-${score}-${activeSkills.join('-')}`;
+  const seed = hash(seedStr);
+
+  const openings = roleOpenings[role] || roleOpenings['Cortex Integrator'];
+  const opening = openings[seed % openings.length];
+  const scoreClause = scoreClauses[seed % scoreClauses.length];
+  const closing = closings[seed % closings.length];
+
+  return `${opening} ${scoreClause} ${skillPart} ${closing}`;
+};
+
+
 export default function App() {
   // --- SPA Page Router State ---
   const [activePage, setActivePage] = useState('landing');
@@ -1130,6 +1220,7 @@ export default function App() {
   const liveXP         = profile?.xp          ?? 0;   // already a plain number from useProfile
   const liveLevel      = profile?.level        ?? 1;
   const liveBrainScore = profile?.brainScore   ?? 0;
+  const generatedBio = generateBuilderBio(profileForm.role, liveBrainScore, profileForm.skills);
 
   const _joinTs = profile?.joinTimestamp ?? 0;  // already seconds as a plain number
   const liveJoinDate = _joinTs > 0
@@ -1846,14 +1937,7 @@ export default function App() {
                   </select>
                 </div>
 
-                <div className="form-group">
-                  <label>Synaptic Description</label>
-                  <textarea 
-                    className="form-textarea" 
-                    value={profileForm.bio}
-                    onChange={(e) => handleProfileFormChange('bio', e.target.value)}
-                  />
-                </div>
+
 
                 <div className="form-group">
                   <label>Primary Technical Skillsets</label>
@@ -1957,25 +2041,35 @@ export default function App() {
                   </div>
 
                   <div className="cyber-card-body">
-                    <div className="card-avatar">
-                      {profileForm.avatar ? (
-                        <img src={profileForm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
-                      ) : (
-                        profileInitials || '??'
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="card-name">{profileForm.name || 'Anonymous Developer'}</h3>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span className="card-role">{profileForm.role}</span>
-                        {profileForm.xUsername && (
-                          <span style={{ fontSize: '0.75rem', color: '#c084fc', background: 'rgba(139,92,246,0.1)', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(139,92,246,0.2)' }}>
-                            @{profileForm.xUsername}
-                          </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                      <div className="card-avatar">
+                        {profileForm.avatar ? (
+                          <img src={profileForm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                        ) : (
+                          profileInitials || '??'
                         )}
                       </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span className="card-name" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', textShadow: '0 0 10px rgba(255,255,255,0.1)' }}>{profileForm.name || 'Anonymous Developer'}</span>
+                          {profileForm.xUsername && (
+                            <span style={{ fontSize: '0.8rem', color: '#c084fc', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+                              </svg>
+                              @{profileForm.xUsername}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <span className="card-role" style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                            {profileForm.role}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="card-bio">{profileForm.bio || 'No bio descriptions synced yet.'}</p>
+                    
+                    <p className="card-bio" style={{ margin: '8px 0 0', minHeight: '90px' }}>{generatedBio}</p>
                     
                     <div className="card-skills">
                       {Object.keys(profileForm.skills).filter(s => profileForm.skills[s]).map(s => (
@@ -2349,7 +2443,7 @@ export default function App() {
                 </div>
               </div>
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)', fontStyle: 'italic', lineHeight: '1.4', height: '60px', overflow: 'hidden' }}>
-                "{profileForm.bio || 'No bio descriptions synced yet.'}"
+                "{generatedBio}"
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>
                 <span>WALLET</span>
