@@ -1,43 +1,119 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-  <!-- Glowing backdrop circle -->
-  <circle cx="50" cy="50" r="40" fill="url(#logoGlow)" opacity="0.2" filter="blur(8px)" />
-  <!-- Outer hexagonal/circular tech ring -->
-  <circle cx="50" cy="50" r="42" stroke="url(#ringGradient)" strokeWidth="3" strokeDasharray="6 4" opacity="0.8" />
-  <!-- Inner rings -->
-  <circle cx="50" cy="50" r="32" stroke="url(#ringGradient)" strokeWidth="1.5" opacity="0.4" />
-  
-  <!-- Isometric Glassmorphic Planes (Identity Concept) -->
-  <!-- Bottom Plane (Purple Glowing Core) -->
-  <path d="M50 35 L75 48 L50 61 L25 48 Z" fill="url(#bottomPlaneGradient)" filter="drop-shadow(0 4px 12px rgba(139, 92, 246, 0.6))" />
-  <!-- Connection Lines between planes -->
-  <line x1="50" y1="35" x2="50" y2="20" stroke="#a78bfa" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
-  <line x1="75" y1="48" x2="75" y2="33" stroke="#60a5fa" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
-  <line x1="25" y1="48" x2="25" y2="33" stroke="#60a5fa" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
-  <line x1="50" y1="61" x2="50" y2="46" stroke="#c084fc" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
-
-  <!-- Top Plane (White/Semi-transparent Glossy Plate) -->
-  <path d="M50 20 L75 33 L50 46 L25 33 Z" fill="url(#topPlaneGradient)" stroke="rgba(255, 255, 255, 0.5)" strokeWidth="1.5" />
-  
-  <!-- Central Neural Core node -->
-  <circle cx="50" cy="33" r="4" fill="#ffffff" filter="drop-shadow(0 0 8px #ffffff)" />
-  
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
   <defs>
-    <radialGradient id="logoGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stopColor="#8b5cf6" />
-      <stop offset="100%" stopColor="transparent" />
+    <linearGradient id="leftHemi" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="rightHemi" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="nodeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e879f9"/>
+      <stop offset="100%" stop-color="#60a5fa"/>
+    </linearGradient>
+    <radialGradient id="bgCircle" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a0e38" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#0a0518" stop-opacity="0.98"/>
     </radialGradient>
-    <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#8b5cf6" />
-      <stop offset="50%" stopColor="#3b82f6" />
-      <stop offset="100%" stopColor="#ec4899" />
-    </linearGradient>
-    <linearGradient id="bottomPlaneGradient" x1="25" y1="35" x2="75" y2="61">
-      <stop offset="0%" stopColor="#7c3aed" />
-      <stop offset="100%" stopColor="#2563eb" />
-    </linearGradient>
-    <linearGradient id="topPlaneGradient" x1="25" y1="20" x2="75" y2="46">
-      <stop offset="0%" stopColor="rgba(255, 255, 255, 0.25)" />
-      <stop offset="100%" stopColor="rgba(255, 255, 255, 0.05)" />
-    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
   </defs>
+
+  <!-- Dark circular background -->
+  <circle cx="100" cy="100" r="95" fill="url(#bgCircle)"/>
+  <circle cx="100" cy="100" r="94" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="9 7" opacity="0.3"/>
+
+  <!-- ===== LEFT HEMISPHERE ===== -->
+  <path d="
+    M 96 75
+    C 96 75, 82 70, 68 74
+    C 54 78, 46 90, 46 102
+    C 46 114, 52 124, 58 130
+    C 64 136, 72 139, 80 138
+    C 86 137, 90 133, 92 128
+    C 94 123, 94 118, 94 113
+    L 94 103
+    C 86 101, 80 96, 80 90
+    C 80 85, 84 80, 90 78
+    L 96 75
+    Z
+  " fill="url(#leftHemi)" opacity="0.93"/>
+
+  <!-- Left hemisphere inner fold highlights -->
+  <path d="M 55 98 Q 68 92, 80 98" stroke="rgba(255,255,255,0.22)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  <path d="M 50 115 Q 64 108, 80 115" stroke="rgba(255,255,255,0.17)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <path d="M 58 130 Q 70 124, 82 128" stroke="rgba(255,255,255,0.13)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+
+  <!-- ===== RIGHT HEMISPHERE ===== -->
+  <path d="
+    M 104 75
+    C 104 75, 118 70, 132 74
+    C 146 78, 154 90, 154 102
+    C 154 114, 148 124, 142 130
+    C 136 136, 128 139, 120 138
+    C 114 137, 110 133, 108 128
+    C 106 123, 106 118, 106 113
+    L 106 103
+    C 114 101, 120 96, 120 90
+    C 120 85, 116 80, 110 78
+    L 104 75
+    Z
+  " fill="url(#rightHemi)" opacity="0.93"/>
+
+  <!-- Right hemisphere inner fold highlights -->
+  <path d="M 145 98 Q 132 92, 120 98" stroke="rgba(255,255,255,0.22)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  <path d="M 150 115 Q 136 108, 120 115" stroke="rgba(255,255,255,0.17)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <path d="M 142 130 Q 130 124, 118 128" stroke="rgba(255,255,255,0.13)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+
+  <!-- ===== TOP CAP / CROWN ===== -->
+  <path d="
+    M 90 78
+    C 90 64, 94 56, 100 56
+    C 106 56, 110 64, 110 78
+    L 104 75
+    L 96 75
+    Z
+  " fill="url(#leftHemi)" opacity="0.88"/>
+  <path d="M 93 66 Q 100 61, 107 66" stroke="rgba(255,255,255,0.28)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+
+  <!-- Medial fissure (center divider) - subtle -->
+  <line x1="100" y1="60" x2="100" y2="140" stroke="rgba(0,0,0,0.45)" stroke-width="2"/>
+
+  <!-- ===== BRAINSTEM - thin & elegant ===== -->
+  <path d="M 94 138 C 94 148, 97 154, 100 155 C 103 154, 106 148, 106 138"
+    stroke="rgba(192,132,252,0.6)" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+  <!-- Tiny bottom node -->
+  <circle cx="100" cy="155" r="3" fill="#c084fc" opacity="0.7" filter="url(#glow)"/>
+
+  <!-- ===== NEURAL NODES — left ===== -->
+  <circle cx="60" cy="96" r="5" fill="#e879f9" filter="url(#glow)" opacity="0.88"/>
+  <circle cx="53" cy="116" r="4" fill="#c084fc" filter="url(#glow)" opacity="0.8"/>
+  <circle cx="66" cy="132" r="3.5" fill="#a78bfa" filter="url(#glow)" opacity="0.72"/>
+
+  <!-- Neural connections — left -->
+  <line x1="60" y1="96" x2="53" y2="116" stroke="#e879f9" stroke-width="1.3" opacity="0.45" stroke-linecap="round"/>
+  <line x1="53" y1="116" x2="66" y2="132" stroke="#c084fc" stroke-width="1.2" opacity="0.4" stroke-linecap="round"/>
+
+  <!-- ===== NEURAL NODES — right ===== -->
+  <circle cx="140" cy="96" r="5" fill="#60a5fa" filter="url(#glow)" opacity="0.88"/>
+  <circle cx="147" cy="116" r="4" fill="#38bdf8" filter="url(#glow)" opacity="0.8"/>
+  <circle cx="134" cy="132" r="3.5" fill="#818cf8" filter="url(#glow)" opacity="0.72"/>
+
+  <!-- Neural connections — right -->
+  <line x1="140" y1="96" x2="147" y2="116" stroke="#60a5fa" stroke-width="1.3" opacity="0.45" stroke-linecap="round"/>
+  <line x1="147" y1="116" x2="134" y2="132" stroke="#38bdf8" stroke-width="1.2" opacity="0.4" stroke-linecap="round"/>
+
+  <!-- Cross-hemisphere bridge -->
+  <path d="M 88 103 Q 100 99, 112 103" stroke="url(#nodeGrad)" stroke-width="1.8" opacity="0.55" fill="none" stroke-linecap="round"/>
+
+  <!-- ===== CROWN APEX SPARK ===== -->
+  <circle cx="100" cy="56" r="5.5" fill="#ffffff" filter="url(#glow)" opacity="0.95"/>
+  <circle cx="100" cy="56" r="3" fill="#e879f9"/>
+  <!-- Crown rays -->
+  <line x1="100" y1="50" x2="100" y2="43" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+  <line x1="95" y1="52" x2="90" y2="47" stroke="#c084fc" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+  <line x1="105" y1="52" x2="110" y2="47" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
 </svg>

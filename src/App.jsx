@@ -1207,7 +1207,7 @@ export default function App() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#03000a', gap: '20px' }}>
         <img 
-          src="/logo.png" 
+          src="/logo-64x64.png" 
           alt="Ritual Brain Logo" 
           style={{ 
             width: '80px', 
@@ -1264,7 +1264,7 @@ export default function App() {
       <header>
         <div className="container nav-wrapper">
           <a href="#" className="logo" onClick={(e) => { e.preventDefault(); handlePageChange('landing'); }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src="/logo.png" alt="Ritual Brain Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
+            <img src="/logo-32x32.png" alt="Ritual Brain Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
             <span>Ritual Brain</span>
           </a>
 
@@ -1357,7 +1357,7 @@ export default function App() {
             <div className="hero-visual">
               <div className="hero-brain-globe">
                 <img 
-                  src="/logo.png" 
+                  src="/logo-256x256.png" 
                   alt="Ritual Brain Hero Logo" 
                   style={{ 
                     position: 'absolute', 
@@ -2055,7 +2055,7 @@ export default function App() {
                 <div className="cyber-card" ref={cardRef}>
                   <div className="cyber-card-header">
                     <div className="card-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <img src="/logo.png" alt="Ritual Identity Logo" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+                      <img src="/logo-32x32.png" alt="Ritual Identity Logo" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
                       <span style={{ fontSize: '0.8rem', letterSpacing: '1px' }}>Ritual Identity</span>
                     </div>
                     <div className="card-chip"></div>
@@ -2660,7 +2660,7 @@ export default function App() {
       <footer>
         <div className="container footer-wrapper">
           <div className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src="/logo.png" alt="Ritual Brain Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+            <img src="/logo-32x32.png" alt="Ritual Brain Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
             <span>Ritual Brain © 2026</span>
             <span style={{ margin: '0 8px', opacity: 0.3 }}>|</span>
             <span style={{ 

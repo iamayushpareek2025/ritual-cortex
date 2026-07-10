@@ -3,14 +3,16 @@ import path from 'path';
 import fs from 'fs';
 
 const PUBLIC_DIR = 'c:/Users/stara/Downloads/ritual-cortex/public';
-const SVG_PATH = path.join(PUBLIC_DIR, 'logo.svg');
+const AI_LOGO_PATH = 'C:/Users/stara/.gemini/antigravity-ide/brain/70563eb3-3d2c-4f11-b000-a2bfd864c1ec/ritual_brain_logo_1783645787429.png';
 
 async function main() {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
   
-  const svgContent = fs.readFileSync(SVG_PATH, 'utf-8');
-  
+  // Convert AI PNG to base64
+  const imgBase64 = fs.readFileSync(AI_LOGO_PATH).toString('base64');
+  const imgDataUrl = `data:image/png;base64,${imgBase64}`;
+
   const sizes = [32, 64, 128, 256, 512];
   
   for (const size of sizes) {
@@ -24,20 +26,29 @@ async function main() {
             padding: 0;
             background: transparent;
             overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             width: ${size}px;
             height: ${size}px;
           }
-          svg {
+          .wrap {
+            width: ${size}px;
+            height: ${size}px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          img {
             width: 100%;
             height: 100%;
+            object-fit: cover;
           }
         </style>
       </head>
       <body>
-        ${svgContent}
+        <div class="wrap">
+          <img src="${imgDataUrl}" alt="logo" />
+        </div>
       </body>
       </html>
     `;
