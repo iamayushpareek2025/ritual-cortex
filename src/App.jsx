@@ -6,6 +6,8 @@ import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 
 import { createPublicClient, http } from 'viem';
 import { ritualTestnet } from './web3/chains';
 import { CONTRACT_ADDRESSES, BRAIN_REGISTRY_ABI, BRAIN_PASS_ABI, XP_BADGE_ABI } from './web3/contracts';
+import { toPng } from 'html-to-image';
+import confetti from 'canvas-confetti';
 
 // Viem public client for direct contract reads (used by the global leaderboard builder)
 const publicClient = createPublicClient({
@@ -29,12 +31,12 @@ export default function App() {
 
   // --- Toast Notification State ---
   const [toasts, setToasts] = useState([]);
-  const addToast = (message, type = 'success') => {
+  const addToast = (message, type = 'success', duration = 4000) => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4000);
+    }, duration);
   };
 
   // --- On-chain Transaction State ---
@@ -171,8 +173,16 @@ export default function App() {
       WebAssembly: false,
       'ZK Circuits': false
     },
-    metadataURI: ''
+    metadataURI: '',
+    xUsername: '',
+    avatar: ''
   });
+
+  // --- Share Achievement States ---
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareCardUrl, setShareCardUrl] = useState('');
+  const [shareCardLoading, setShareCardLoading] = useState(false);
+  const [shareCardProgress, setShareCardProgress] = useState('');
 
   // --- Global Leaderboard States ---
   const [leaderboardSearch, setLeaderboardSearch] = useState('');
@@ -413,10 +423,17 @@ export default function App() {
         lastLoadedTxHash.current = txReceipt.transactionHash;
       }
 
+      // Read local storage for avatar and X username
+      const localAvatar = localStorage.getItem(`cortex_avatar_${address.toLowerCase()}`) || '';
+      const localXUser = localStorage.getItem(`cortex_x_username_${address.toLowerCase()}`) || '';
+      setShareCardUrl(''); // Reset compiled share card on wallet change
+
       setProfileForm(prev => ({
         ...prev,
         name: profile.username || prev.name,
         metadataURI: profile.metadataURI || prev.metadataURI,
+        xUsername: localXUser,
+        avatar: localAvatar,
       }));
 
       // If metadataURI points to a JSON endpoint, hydrate role/bio/skills
@@ -869,7 +886,30 @@ export default function App() {
 
   // --- Profile Card Sync Engine (Local View Update) ---
   const handleProfileFormChange = (key, val) => {
-    setProfileForm(prev => ({ ...prev, [key]: val }));
+    setProfileForm(prev => {
+      const updated = { ...prev, [key]: val };
+      if (key === 'xUsername' && address) {
+        localStorage.setItem(`cortex_x_username_${address.toLowerCase()}`, val);
+        setShareCardUrl(''); // Invalidate cache
+      }
+      return updated;
+    });
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Data = reader.result;
+        setProfileForm(prev => ({ ...prev, avatar: base64Data }));
+        if (address) {
+          localStorage.setItem(`cortex_avatar_${address.toLowerCase()}`, base64Data);
+          setShareCardUrl(''); // Invalidate cache
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleProfileSkillToggle = (skill) => {
@@ -877,6 +917,78 @@ export default function App() {
       ...prev,
       skills: { ...prev.skills, [skill]: !prev.skills[skill] }
     }));
+  };
+
+  // --- Share Card Generation and Action Handlers ---
+  const handleOpenShareModal = () => {
+    setShareModalOpen(true);
+    if (!shareCardUrl) {
+      generateShareCard();
+    }
+  };
+
+  const generateShareCard = async () => {
+    setShareCardLoading(true);
+    setShareCardProgress('Initializing canvas compilation...');
+    
+    await new Promise(r => setTimeout(r, 600));
+
+    const element = document.getElementById('achievement-card-ref');
+    if (!element) {
+      setShareCardLoading(false);
+      addToast('Error: Offscreen card element not found.', 'error');
+      return;
+    }
+
+    try {
+      setShareCardProgress('Rendering holographic textures...');
+      await new Promise(r => setTimeout(r, 400));
+
+      setShareCardProgress('Rasterizing vector graphics...');
+      const dataUrl = await toPng(element, {
+        width: 1200,
+        height: 675,
+        cacheBust: true,
+      });
+
+      setShareCardUrl(dataUrl);
+      setShareCardLoading(false);
+      
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#8b5cf6', '#3b82f6', '#ec4899', '#ffffff']
+      });
+      
+      addToast('Achievement card compiled successfully!', 'success');
+    } catch (err) {
+      console.error('Card generation failed:', err);
+      setShareCardLoading(false);
+      addToast('Failed to generate achievement card.', 'error');
+    }
+  };
+
+  const handleDownloadCard = () => {
+    if (!shareCardUrl) return;
+    const link = document.createElement('a');
+    link.download = `ritual_achievement_${address.slice(0, 6)}.png`;
+    link.href = shareCardUrl;
+    link.click();
+    addToast('Card PNG downloaded successfully!', 'success');
+  };
+
+  const handleShareOnX = () => {
+    if (!shareCardUrl) return;
+    
+    handleDownloadCard();
+
+    const gflopsVal = (liveBrainScore * 1000) + (liveLevel * 5000) + (liveXP * 10);
+    const text = `🧠 I just verified my Builder Identity on Ritual Brain!\n\n⚡ Brain Score: ${liveBrainScore}%\n🚀 GFLOPS: ${gflopsVal > 0 ? gflopsVal.toLocaleString() : '--'}\n🏆 Level: ${liveLevel}\n\nBuilt on Ritual Testnet.\nCan you beat my score?\n\nhttps://ritual-cortex-wine.vercel.app/\n\n#Ritual #BuildOnRitual #AI #Web3`;
+    const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    window.open(shareUrl, '_blank');
+
+    addToast('Your achievement card has been downloaded. Attach it to your X post and publish!', 'success', 8000);
   };
 
   const profileInitials = profileForm.name
@@ -1526,6 +1638,15 @@ export default function App() {
                             <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>Status:</span> <span style={{ color: '#10b981', fontWeight: 600 }}>SUCCESS</span>
                           </div>
                         </div>
+                        {passBalance && passBalance > 0n && (
+                          <button 
+                            className="btn btn-primary btn-glow" 
+                            onClick={handleOpenShareModal}
+                            style={{ width: '100%', marginTop: '14px', fontSize: '0.85rem', background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)', border: 'none' }}
+                          >
+                            🚀 Share Achievement
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1749,6 +1870,49 @@ export default function App() {
                   />
                 </div>
 
+                <div className="form-group">
+                  <label>X (Twitter) Username</label>
+                  <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: '12px', color: 'var(--text-secondary)', fontSize: '0.9rem', pointerEvents: 'none' }}>@</span>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      style={{ paddingLeft: '28px' }}
+                      value={profileForm.xUsername || ''}
+                      onChange={(e) => handleProfileFormChange('xUsername', e.target.value)}
+                      placeholder="username"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Profile Avatar</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '6px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {profileForm.avatar ? (
+                        <img src={profileForm.avatar} alt="Avatar Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                      )}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <input 
+                        type="file" 
+                        id="avatar-upload" 
+                        accept="image/*" 
+                        onChange={handleAvatarChange} 
+                        style={{ display: 'none' }}
+                      />
+                      <label htmlFor="avatar-upload" className="btn btn-secondary" style={{ display: 'inline-block', fontSize: '0.8rem', padding: '6px 12px', cursor: 'pointer', margin: 0, width: 'auto' }}>
+                        Upload Image
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
                 <div style={{ marginTop: '20px' }}>
                   {txState.loading ? (
                     <div style={{ textAlign: 'center' }}>
@@ -1786,10 +1950,23 @@ export default function App() {
                   </div>
 
                   <div className="cyber-card-body">
-                    <div className="card-avatar">{profileInitials || '??'}</div>
+                    <div className="card-avatar">
+                      {profileForm.avatar ? (
+                        <img src={profileForm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                      ) : (
+                        profileInitials || '??'
+                      )}
+                    </div>
                     <div>
                       <h3 className="card-name">{profileForm.name || 'Anonymous Developer'}</h3>
-                      <span className="card-role">{profileForm.role}</span>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span className="card-role">{profileForm.role}</span>
+                        {profileForm.xUsername && (
+                          <span style={{ fontSize: '0.75rem', color: '#c084fc', background: 'rgba(139,92,246,0.1)', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(139,92,246,0.2)' }}>
+                            @{profileForm.xUsername}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <p className="card-bio">{profileForm.bio || 'No bio descriptions synced yet.'}</p>
                     
@@ -2018,6 +2195,325 @@ export default function App() {
               <div className="connecting-spinner"></div>
               <h3 className="modal-title">Negotiating Synaptic Link...</h3>
               <p className="modal-subtitle" style={{ marginBottom: 0 }}>Authorizing connection with node protocol wrapper. Please accept in your wallet pop-up.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Offscreen achievement card node used for html-to-image export */}
+      <div style={{ position: 'fixed', left: '-9999px', top: '-9999px', zIndex: -1000 }}>
+        <div id="achievement-card-ref" style={{
+          width: '1200px',
+          height: '675px',
+          background: 'linear-gradient(135deg, #07040e 0%, #170d30 50%, #0d061c 100%)',
+          fontFamily: 'Inter, sans-serif',
+          color: '#fff',
+          padding: '48px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          {/* Cyber Grid background overlay */}
+          <div style={{
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundImage: 'linear-gradient(rgba(139, 92, 246, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 92, 246, 0.04) 1px, transparent 1px)',
+            backgroundSize: '30px 30px',
+            pointerEvents: 'none',
+          }}></div>
+
+          {/* Glowing radial circles */}
+          <div style={{
+            position: 'absolute',
+            top: '-150px',
+            right: '-150px',
+            width: '400px',
+            height: '400px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.22) 0%, transparent 70%)',
+            filter: 'blur(30px)',
+          }}></div>
+          <div style={{
+            position: 'absolute',
+            bottom: '-150px',
+            left: '-150px',
+            width: '450px',
+            height: '450px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, transparent 70%)',
+            filter: 'blur(35px)',
+          }}></div>
+
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
+                padding: '10px',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)',
+              }}>
+                <svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="#fff" strokeWidth="2.5">
+                  <circle cx="16" cy="16" r="14" />
+                  <circle cx="16" cy="16" r="8" strokeDasharray="3 3" />
+                  <circle cx="16" cy="16" r="3" fill="#fff" />
+                </svg>
+              </div>
+              <span style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'monospace', letterSpacing: '2px', color: '#c084fc', textShadow: '0 0 10px rgba(192, 132, 252, 0.3)' }}>
+                RITUAL CORTEX
+              </span>
+            </div>
+            <div style={{
+              background: 'rgba(16, 185, 129, 0.1)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              color: '#10b981',
+              fontSize: '0.9rem',
+              fontWeight: 700,
+              padding: '6px 14px',
+              borderRadius: '20px',
+              letterSpacing: '1px',
+              textTransform: 'uppercase',
+              textShadow: '0 0 8px rgba(16, 185, 129, 0.3)',
+            }}>
+              Ritual Testnet Verified
+            </div>
+          </div>
+
+          {/* Body Content */}
+          <div style={{ display: 'flex', gap: '48px', alignItems: 'center', zIndex: 2, flex: 1, marginTop: '24px' }}>
+            {/* Left Column: Avatar & Identity Card */}
+            <div style={{
+              width: '420px',
+              background: 'rgba(255, 255, 255, 0.02)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '20px',
+              padding: '32px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.05)',
+              position: 'relative',
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '-1px', left: '20px', right: '20px',
+                height: '1px',
+                background: 'linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent)',
+              }}></div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div style={{
+                  width: '96px',
+                  height: '96px',
+                  borderRadius: '50%',
+                  border: '2.5px solid #8b5cf6',
+                  overflow: 'hidden',
+                  background: 'rgba(255,255,255,0.05)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 20px rgba(139, 92, 246, 0.3)',
+                  flexShrink: 0,
+                }}>
+                  {profileForm.avatar ? (
+                    <img src={profileForm.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#a78bfa' }}>
+                      {profileInitials || '??'}
+                    </div>
+                  )}
+                </div>
+                <div style={{ overflow: 'hidden' }}>
+                  <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: '#fff' }}>
+                    {profileForm.name || 'Anonymous Developer'}
+                  </h2>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
+                    <span style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.6)' }}>{profileForm.role}</span>
+                    {profileForm.xUsername && (
+                      <span style={{ fontSize: '0.9rem', color: '#c084fc', fontWeight: 600 }}>@{profileForm.xUsername}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)', fontStyle: 'italic', lineHeight: '1.4', height: '60px', overflow: 'hidden' }}>
+                "{profileForm.bio || 'No bio descriptions synced yet.'}"
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>
+                <span>WALLET</span>
+                <span>{address ? `${address.slice(0, 8)}...${address.slice(-6)}` : ''}</span>
+              </div>
+            </div>
+
+            {/* Right Column: Stats achievements */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.01)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                }}>
+                  <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Brain Score</span>
+                  <span style={{ fontSize: '2.5rem', fontWeight: 900, color: '#c084fc', textShadow: '0 0 15px rgba(192, 132, 252, 0.4)' }}>
+                    {liveBrainScore}%
+                  </span>
+                </div>
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.01)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                }}>
+                  <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Compute Power</span>
+                  <span style={{ fontSize: '2rem', fontWeight: 900, color: '#fff' }}>
+                    {((liveBrainScore * 1000) + (liveLevel * 5000) + (liveXP * 10)).toLocaleString()} <span style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.5)' }}>GFLOPS</span>
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.01)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                }}>
+                  <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Synaptic Level</span>
+                  <span style={{ fontSize: '2rem', fontWeight: 900, color: '#fff' }}>
+                    Level {liveLevel} <span style={{ fontSize: '1rem', color: '#a78bfa' }}>({liveXP} XP)</span>
+                  </span>
+                </div>
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.01)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                }}>
+                  <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Brain Pass</span>
+                  <span style={{
+                    background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
+                    color: '#fff',
+                    fontSize: '0.9rem',
+                    fontWeight: 800,
+                    padding: '6px 16px',
+                    borderRadius: '6px',
+                    boxShadow: '0 0 15px rgba(124, 58, 237, 0.4)',
+                    letterSpacing: '1.5px',
+                    textTransform: 'uppercase',
+                    marginTop: '4px',
+                  }}>
+                    {livePassId ? `PASS #${livePassId.toString()}` : 'ACTIVE'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer decoration */}
+          <div style={{
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+            paddingTop: '20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '0.85rem',
+            color: 'rgba(255,255,255,0.4)',
+            fontFamily: 'monospace',
+            letterSpacing: '1px',
+            zIndex: 2,
+          }}>
+            <span>CRITICAL PROTOCOL: LEVEL {liveLevel} VALIDATOR NODE ACTIVE</span>
+            <span style={{ color: 'rgba(255,255,255,0.2)' }}>SECURE VERIFICATION SHIELD v2.0.1</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Share Achievement Modal */}
+      <div className={`modal-overlay ${shareModalOpen ? 'active' : ''}`} style={{ zIndex: 210 }}>
+        <div className="modal-box" style={{ maxWidth: '640px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <button className="modal-close" onClick={() => setShareModalOpen(false)}>&times;</button>
+          
+          <h3 className="modal-title" style={{ marginBottom: '4px' }}>Share Achievement</h3>
+          <p className="modal-subtitle" style={{ marginBottom: '10px' }}>Broadcast your cryptographic validator credentials on social networks.</p>
+
+          {shareCardLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '260px', gap: '16px' }}>
+              <div className="connecting-spinner" style={{ width: '40px', height: '40px' }}></div>
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
+                {shareCardProgress}
+              </span>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+              {shareCardUrl ? (
+                <div style={{
+                  width: '100%',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+                  background: '#090514',
+                  lineHeight: 0
+                }}>
+                  <img src={shareCardUrl} alt="Achievement Card Preview" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                </div>
+              ) : (
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Generating card preview...</div>
+              )}
+
+              <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleDownloadCard}
+                  disabled={!shareCardUrl}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Download Card
+                </button>
+                <button
+                  className="btn btn-primary btn-glow"
+                  onClick={handleShareOnX}
+                  disabled={!shareCardUrl}
+                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                  Share on X
+                </button>
+              </div>
             </div>
           )}
         </div>
