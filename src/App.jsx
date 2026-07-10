@@ -2379,7 +2379,26 @@ export default function App() {
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mobile / QR</span>
                 </div>
 
+                {/* OKX Wallet */}
+                <div className="wallet-option" onClick={() => handleConnectWallet('okx')}>
+                  <div className="wallet-option-left">
+                    <div className="wallet-option-logo">
+                      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100" height="100" rx="20" fill="#000"/>
+                        <rect x="12" y="12" width="30" height="30" rx="4" fill="white"/>
+                        <rect x="58" y="12" width="30" height="30" rx="4" fill="white"/>
+                        <rect x="35" y="35" width="30" height="30" rx="4" fill="white"/>
+                        <rect x="12" y="58" width="30" height="30" rx="4" fill="white"/>
+                        <rect x="58" y="58" width="30" height="30" rx="4" fill="white"/>
+                      </svg>
+                    </div>
+                    <span className="wallet-option-name">OKX Wallet</span>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Browser Ext</span>
+                </div>
+
               </div>
+
 
             </div>
           ) : (

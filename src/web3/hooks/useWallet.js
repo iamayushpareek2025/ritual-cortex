@@ -39,10 +39,11 @@ export function useWallet() {
     } else if (providerId === 'coinbase') {
       connector = connectors.find(c => c.id === 'coinbaseWalletSDK' || c.id === 'coinbaseWallet');
       if (!connector) throw new Error('Coinbase Wallet connector not available.');
+    } else if (providerId === 'okx') {
+      connector = connectors.find(c => c.id === 'okxWallet');
+      if (!connector) throw new Error('OKX Wallet extension not found. Please install it.');
     } else if (providerId === 'walletconnect') {
       // Strict lookup — do NOT fall back to injected/MetaMask.
-      // If WalletConnect connector is missing, the project ID is likely not set or
-      // the dev server needs a restart after adding VITE_WALLETCONNECT_PROJECT_ID.
       connector = connectors.find(c => c.id === 'walletConnect' || c.id === 'walletConnectSDK');
       if (!connector) {
         throw new Error('WalletConnect is not configured. Ensure VITE_WALLETCONNECT_PROJECT_ID is set and restart the dev server.');

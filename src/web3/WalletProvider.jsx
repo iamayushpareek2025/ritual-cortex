@@ -21,6 +21,15 @@ export const config = createConfig({
   connectors: [
     injected({ target: 'metaMask' }),
     coinbaseWallet({ appName: 'Ritual Brain' }),
+    // OKX Wallet injects itself as window.okxwallet
+    injected({
+      target: {
+        id: 'okxWallet',
+        name: 'OKX Wallet',
+        provider: () =>
+          typeof window !== 'undefined' ? window.okxwallet : undefined,
+      },
+    }),
     ...(WC_PROJECT_ID
       ? [walletConnect({ projectId: WC_PROJECT_ID })]
       : []),
